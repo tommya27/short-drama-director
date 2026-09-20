@@ -1,0 +1,15 @@
+.venv/
+.runtime_deps/
+backend/.deps/
+backend/.deps313/
+backend/.depsclean/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.pytest_tmp/
+web/node_modules/
+web/dist/
+data/
+.runtime/
+.env
+*.db

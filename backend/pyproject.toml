@@ -1,0 +1,12 @@
+[project]
+name = "short-drama-director-backend"
+version = "0.1.0"
+description = "Standalone short-drama director sandbox"
+requires-python = ">=3.10"
+dependencies = ["fastapi>=0.100", "uvicorn>=0.23", "pydantic>=1.10"]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0", "httpx2>=2.13"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

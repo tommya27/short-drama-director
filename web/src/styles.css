@@ -391,3 +391,26 @@ input[type="checkbox"] { width: 16px; height: 16px; min-height: 0; flex: 0 0 16p
 .segment-row.current span { color: #b8862e; }
 .segment-row.todo span { color: #9aa39c; }
 .segment-row.current { background: #fff8e8; border-radius: 6px; }
+
+/* 分段内的事件列表（点开某一段看它里面发生了什么） */
+.segment-row summary { display: grid; grid-template-columns: 56px 52px 1fr; gap: 6px; align-items: baseline; cursor: pointer; list-style: none; }
+.segment-row summary::-webkit-details-marker { display: none; }
+.segment-events { padding: 4px 0 6px 10px; border-left: 2px solid #e2e6dd; margin-top: 4px; }
+.segment-events p { margin: 3px 0; font-size: 11px; color: #4b564f; line-height: 1.5; }
+.segment-events p b { color: #2f6f5b; }
+.segment-events .hint { color: #9aa39c; }
+
+/* 剧情分段选择器：点哪段看哪段 */
+.segment-tabs { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.segment-tab { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 4px 8px; border: 1px solid #dfe3da; border-radius: 6px; background: #fbfcf7; color: #4b564f; font-size: 11px; cursor: pointer; }
+.segment-tab small { font-size: 9px; color: #9aa39c; }
+.segment-tab.done { border-color: #bcd8c6; background: #f1f8f2; }
+.segment-tab.done small { color: #2f7a55; }
+.segment-tab.current { border-color: #e2c48a; background: #fff8e8; }
+.segment-tab.current small { color: #b8862e; }
+.segment-tab.active { box-shadow: 0 0 0 2px #2f6f5b33; border-color: #2f6f5b; }
+.segment-detail { border-top: 1px dashed #e6e8e0; padding-top: 6px; }
+.segment-head { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: #38443e; }
+.segment-head span { font-weight: 600; color: #6b7770; }
+.segment-event { margin: 3px 0; font-size: 11px; color: #4b564f; line-height: 1.5; }
+.segment-event b { color: #2f6f5b; }

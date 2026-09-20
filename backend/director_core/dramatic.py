@@ -303,6 +303,13 @@ def advance_beat_state(state: dict, beats: list[dict], *, tension: int = 0) -> d
     beat_state = dict(state.get("beat_state") or {})
     index = max(0, min(int(beat_state.get("index", 0)), max(0, len(beats) - 1)))
     completed = list(beat_state.get("completed_beats") or [])
+    # 推进前给"还没有分段归属"的已提交事件补上当前段：作者在段末点推进，
+    # 这些事件就是在这一段里发生的，因此可以明确归属，界面也就看得到"第1段发生了什么"。
+    if beats:
+        current_id = str(beats[index].get("beat_id", ""))
+        for event in state.get("events", []) or []:
+            if isinstance(event, dict) and not event.get("beat_id"):
+                event["beat_id"] = current_id
     if beats and index < len(beats) - 1:
         current = str(beats[index].get("beat_id", f"beat_{index + 1}"))
         if current not in completed:

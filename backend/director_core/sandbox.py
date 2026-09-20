@@ -175,6 +175,7 @@ def project(spec: dict, state: dict, events: list[dict]) -> dict:
                    'source', 'original_proposal', 'author_edits', 'referenced_event_ids'}
         for key in set(event) - allowed:
             event.pop(key)
+        event['checks'] = []          # 先清空，后续字段级降级与检查都在此之后追加
         actor_id = event.get('actor_id')
         if not isinstance(actor_id, str) or actor_id not in actors:
             raise ValueError('候选事件引用不存在的角色')
@@ -201,7 +202,11 @@ def project(spec: dict, state: dict, events: list[dict]) -> dict:
             if event.get(field) is not None and not isinstance(event[field], str):
                 raise ValueError(f'{field} 必须是字符串')
         if event.get('target_id') and event['target_id'] not in actors:
-            raise ValueError('行动目标角色不存在')
+            # 模型可能虚构行动对象：忽略该字段并留下可见记录，不让整轮失败。
+            event['checks'] = event.get('checks') or []
+            event['checks'].append({'label': '行动目标', 'result': '角色不存在，已忽略该对象',
+                                    'source': 'world.characters', 'proposed': event['target_id']})
+            event['target_id'] = None
         for field in ('reveal_fact_ids', 'referenced_event_ids'):
             values = event.get(field, [])
             if not isinstance(values, list) or any(not isinstance(v, str) for v in values):
@@ -210,8 +215,10 @@ def project(spec: dict, state: dict, events: list[dict]) -> dict:
             value = event['transfer']
             if (not isinstance(value, dict) or set(value) != {'item_id', 'to_actor_id'}
                     or any(not isinstance(v, str) or not v for v in value.values())):
-                raise ValueError('transfer 必须包含 item_id 和 to_actor_id 字符串')
-        event['checks'] = []
+                # 结构不合法的转交：忽略并记录，不毁掉整轮
+                event.setdefault('checks', []).append({'label': '道具转交', 'result': '字段不合法，已忽略该操作',
+                                                       'source': 'transfer', 'proposed': str(value)[:60]})
+                event['transfer'] = None
         destination = event.get('move_to', event.get('goto_location')) or actors[actor_id]['location']
         origin = state['actors'][actor_id]['location']
         if destination not in locations:
@@ -251,43 +258,66 @@ def project(spec: dict, state: dict, events: list[dict]) -> dict:
         transfer = event.get('transfer')
         if transfer:
             if not isinstance(transfer, dict):
-                raise ValueError('转交字段必须是对象')
+                event['checks'].append({'label': '道具转交', 'result': '字段不是对象，已忽略该操作',
+                                        'source': 'transfer', 'proposed': str(transfer)[:60]})
+                event['transfer'] = None
+                transfer = None
+        if transfer:
             item_id, target = transfer.get('item_id'), transfer.get('to_actor_id')
             entity = machine.entities.get(item_id)
             original = state.get('items', {}).get(item_id, {})
+            reason = None
             if (not entity or entity.state != 'active' or entity.holder != actor_id
                     or original.get('holder') != actor_id):
-                raise ValueError('只能转交角色实际持有的道具')
-            if target not in actors or actors[target]['location'] != location:
-                raise ValueError('接收道具的角色必须在同一地点')
-            assessment = machine.assess(actor_id, location, item_id)
-            machine.transfer(step, item_id, target)
-            event['checks'].append({'label': '道具转交', 'result': '通过', 'source': item_id, 'assessment': assessment})
+                reason = '角色当前并不持有该道具'
+            elif target not in actors or actors[target]['location'] != location:
+                reason = '接收者不在同一地点'
+            if reason:
+                event['checks'].append({'label': '道具转交', 'result': f'{reason}，已忽略该操作',
+                                        'source': item_id, 'proposed': str(transfer)[:60]})
+                event['transfer'] = None
+            else:
+                assessment = machine.assess(actor_id, location, item_id)
+                machine.transfer(step, item_id, target)
+                event['checks'].append({'label': '道具转交', 'result': '通过', 'source': item_id, 'assessment': assessment})
         for field, operation in [('pickup_item_id', 'pickup'), ('drop_item_id', 'drop')]:
             item_id = event.get(field)
             if not item_id:
                 continue
             entity = machine.entities.get(item_id)
+            note = None
             if not entity or entity.state != 'active':
-                raise ValueError('道具不存在或已经销毁')
-            if operation == 'pickup':
+                note = '道具不存在或已销毁'
+            elif operation == 'pickup':
                 original = state.get('items', {}).get(item_id, {})
                 if (entity.holder is not None or entity.location != location
                         or original.get('holder') is not None or original.get('location') != location):
-                    raise ValueError('只能拾取当前地点无人持有的道具')
-                machine.pickup(step, item_id, actor_id)
+                    note = '该道具不在当前地点或并非无主'
+            elif entity.holder != actor_id or state['items'][item_id].get('holder') != actor_id:
+                note = '角色当前并不持有该道具'
+            if note:
+                # 模型提议了不合法的取用/放下：忽略该操作并留下可见依据，不让整轮失败。
+                event['checks'].append({'label': '道具取用' if operation == 'pickup' else '道具放下',
+                                        'result': f'{note}，已忽略该操作', 'source': item_id, 'proposed': item_id})
+                event[field] = None
             else:
-                if entity.holder != actor_id or state['items'][item_id].get('holder') != actor_id:
-                    raise ValueError('只能放下角色实际持有的道具')
-                machine.drop(step, item_id, location)
-            event['checks'].append({'label': operation, 'result': '通过', 'source': item_id})
+                if operation == 'pickup':
+                    machine.pickup(step, item_id, actor_id)
+                else:
+                    machine.drop(step, item_id, location)
+                event['checks'].append({'label': operation, 'result': '通过', 'source': item_id})
         for fact_id in event.get('reveal_fact_ids', []):
             fact = facts.get(fact_id)
             original = next((f for f in state.get('facts', []) if f['id'] == fact_id), None)
             if not fact or not original or actor_id not in original.get('known_by', []):
-                raise ValueError('角色不能披露自己尚不知道的事实')
+                # 角色不能披露自己不知道的事：忽略该条并记录，不让整轮失败。
+                event['checks'].append({'label': '信息披露', 'result': '角色尚不知道该事实，已忽略',
+                                        'source': fact_id})
+                continue
             if fact_id in state.get('locked_fact_ids', []):
-                raise ValueError('事实已锁定，不能改变其知情范围')
+                event['checks'].append({'label': '信息披露', 'result': '事实已锁定，已忽略该披露',
+                                        'source': fact_id})
+                continue
             fact['known_by'] = sorted(set(fact.get('known_by', [])) | set(witnesses))
             fact.setdefault('observations', []).append({'event_id': event['id'], 'actor_ids': witnesses, 'kind': 'disclosure'})
             event['checks'].append({'label': '信息披露', 'result': '通过', 'source': fact_id})

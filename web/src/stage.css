@@ -45,3 +45,4 @@
 .speech-bubble span{color:#5d6a63}
 .speech-bubble em{color:#2f3a35;font-style:normal}
 .speech-bubble.chosen{border-color:#c79353;background:#fff7e4f2;box-shadow:0 8px 22px #a97a3a45}
+.speech-progress{align-self:flex-end;font-size:9px;color:#8d9a92;font-style:normal}

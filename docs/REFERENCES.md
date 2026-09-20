@@ -21,3 +21,20 @@ FeiControl 证据位置：旧工作区 `baytech2026/runs/references/feicontrol/`
 - 自有设计补充：屏幕像素字号、引导线、角色投影包围框避让、标签优先级与拥挤隐藏、底部两行事件卡。上述避让功能不是所读 FeiControl 组件的现成功能，不声称来自该项目。
 - 验证方式：前端 TypeScript/构建检查以及本地浏览器的标注开关、角色选择、镜头和窄屏视觉检查；实际结果另记验收文档。
 - 复用限制：只借鉴信息分层，不复制代码、模型、图片、数据、品牌或监控面板结构；未新增第三方资源和依赖。
+
+## 2026-09-20：对白分段与阅读节奏
+
+**本节来源均为搜索结果中出现的标题/摘要片段，未打开原文**，因此按本台账规则记为「待阅读」，不构成标准符合性声明。
+
+| 候选来源 | 链接 | 想用它回答什么 | 当前证据状态 |
+|---|---|---|---|
+| Netflix Timed Text Style Guide（English UK） | https://partnerhelp.netflixstudios.com/hc/en-us/articles/30806198616339-English-UK-Timed-Text-Style-Guide | 定时文本按阅读速度控时长、单条有最短/最长与行宽约束 | 仅见标题与摘要片段；待阅读 |
+| BBC R&D WHP306（字幕速率研究） | http://downloads.bbc.co.uk/rd/pubs/whp/whp-pdf-files/WHP306.pdf | 字幕速率与理解度的经验区间 | 仅见摘要片段；待阅读 |
+| Pošta (2012) 字幕标准（经 Masaryk University 学位论文二手引用） | https://is.muni.cz/th/seuk9/Diploma_Thesis-AJP-Kachynova.docx | 单条字幕最短约 1–1.5 秒、并有上限 | 二手引用；需回溯原文 |
+| 国家标准《无障碍音视频出版物通用技术规范》（起草稿） | https://std.samr.gov.cn/dcpspTools/gbPlan/download?path=%2Fzxd%2F2024004172%2F20_%E6%A0%87%E5%87%86%E8%B5%B7%E8%8D%89%2F20_WD_2024004172_%E6%97%A0%E9%9A%9C%E7%A2%8D%E9%9F%B3%E8%A7%86%E9%A2%91%E5%87%BA%E7%89%88%E7%89%A9%E9%80%9A%E7%94%A8%E6%8A%80%E6%9C%AF%E8%A7%84%E8%8C%83.pdf | 中文单行字数与字幕呈现的一般约束 | 起草稿；待核对正式发布版 |
+| Ren'Py preferences 文档；Lemma Soft 社区「Average reading speed?」 | https://ja.renpy.org/doc/html/preferences.html ； https://lemmasoft.renai.us/forums/viewtopic.php?p=61847 | 视觉小说既有做法：自动前进、每字速度可调、用户可切换 | 社区资料；非标准 |
+
+- 采用结论（工程默认值，非合规声明）：长台词按中英标点切句、每段不超过 14 字、按约 6 字/秒折算时长并夹在 1.2–4 秒，保留「逐句 / 整段」用户开关。
+- 对应实现：`web/src/dialogue.ts`（`splitSentences` / `splitDialogue` / `chunkDurationMs` / `planDialogue`）、`web/src/Stage3D.tsx`（说话气泡逐段显示）、`web/src/App.tsx`（工具栏开关）。
+- 验证方式：用项目自带 esbuild 转译后跑样例输入，核对分段与时长输出（结果记入验收文档）；构建类型检查通过。未做浏览器人工观感验收。
+- 限制：上述数值是可配置默认值，**不声称符合任何标准**；待读过原文后再评估是否按标准调整。

@@ -39,7 +39,8 @@ class LLMCandidateGenerator:
             "transfer({item_id,to_actor_id}，仅转交自己持有的道具，可省略)、"
             "pickup_item_id、drop_item_id(均可省略)、reveal_fact_ids(公开已知信息ID数组)。"
             + constraint +
-            "台词可以说谎，但不会因此改变事实。",
+            "台词可以说谎，但不会因此改变事实。"
+            "dialogue 尽量不超过 40 字；想说的多就拆成两三个短句，便于逐句显示。",
             json.dumps(context, ensure_ascii=False), tag=f"narrative_decision_{actor['id']}",
         )
 

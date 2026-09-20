@@ -7,12 +7,30 @@ import { StageLabels, type StageLabel } from './StageLabels';
 import { WALK_SPEED, walkingPath } from './walking';
 import { actorPositions, layoutFor, type Vec3, type StageLayout } from './stage-manifest';
 import { assetSrc } from './api';
+import { planDialogue } from './dialogue';
 
 /** 美术素材加载失败时只丢素材层，不影响 3D 舞台与操作。 */
 class ArtBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
  state = { failed: false };
  static getDerivedStateFromError() { return { failed: true }; }
  render() { return this.state.failed ? null : this.props.children; }
+}
+function SpeechBubble({ name, action, dialogue, chosen, lines }: { name: string; action?: string; dialogue?: string; chosen: boolean; lines: boolean }) {
+ const plan = useMemo(() => planDialogue(dialogue ?? ""), [dialogue]);
+ const [index, setIndex] = useState(0);
+ useEffect(() => { setIndex(0); }, [dialogue]);
+ useEffect(() => {
+  if (!lines || plan.length <= 1 || index >= plan.length - 1) return;
+  const timer = setTimeout(() => setIndex(current => Math.min(current + 1, plan.length - 1)), plan[index].durationMs);
+  return () => clearTimeout(timer);
+ }, [index, plan, lines]);
+ const stepped = lines && plan.length > 1;
+ return <div className={`speech-bubble ${chosen ? 'chosen' : ''}`}>
+  <b>{name}</b>
+  {action && <span>{action}</span>}
+  {dialogue && <em>“{stepped ? plan[index].text : dialogue}”</em>}
+  {stepped && <i className="speech-progress">{index + 1} / {plan.length}</i>}
+ </div>;
 }
 function Backdrop({ url }: { url: string }) {
  const texture = useTexture(url);
@@ -168,7 +186,7 @@ function SceneContent(props: Props) {
   {actors.map((actor,index)=>{const event=props.events.filter(e=>e.actor_id===actor.id).at(-1); return <Avatar key={actor.id} id={actor.id} color={colorFor(index)} position={positions[actor.id]} target={positions[String(event?.target_id)]??[0,0,0]} selected={props.selectedActor===actor.id} motion={props.motion} onSelect={()=>props.onActorSelect(actor.id)} onHover={value=>setHovered(value?`actor:${actor.id}`:null)}/>;})}
   {actors.map(actor=>{const latest=props.events.filter(e=>e.actor_id===actor.id).at(-1);const anchor=positions[actor.id];if(!latest||!anchor)return null;
    const selected=props.selectedActor===actor.id;const show=!!latest.dialogue||selected;if(!show)return null;
-   return <Html key={`say:${actor.id}`} position={[anchor[0],2.3,anchor[2]]} center distanceFactor={9} zIndexRange={[20,0]} style={{pointerEvents:'none'}}><div className={`speech-bubble ${selected?'chosen':''}`}><b>{actor.name}</b>{latest.action&&<span>{latest.action}</span>}{latest.dialogue&&<em>“{latest.dialogue}”</em>}</div></Html>;})}
+   return <Html key={`say:${actor.id}`} position={[anchor[0],2.3,anchor[2]]} center distanceFactor={9} zIndexRange={[20,0]} style={{pointerEvents:'none'}}><SpeechBubble name={actor.name} action={latest.action} dialogue={latest.dialogue} chosen={selected} lines={!!props.dialogueLines}/></Html>;})}
   {actors.map(actor=>{const latest=props.events.filter(e=>e.actor_id===actor.id).at(-1);const target=latest?.target_id?positions[latest.target_id]:undefined;const from=positions[actor.id];if(!target||!from)return null;
    return <Line key={`talk:${actor.id}`} points={[new Vector3(from[0],1.05,from[2]),new Vector3(target[0],1.05,target[2])]} color="#c79353" lineWidth={1.2} dashed dashSize={.22} gapSize={.16}/>;})}
   {Object.values(props.snapshot.items??{}).map((item,index)=>{const p=item.holder?positions[item.holder]:undefined;const zone=layout.anchors[item.location??'']??[0,0,0];const point=layout.points.find(point=>point.item_id===item.id);return <Item key={item.id} id={item.id} index={index} holder={item.holder} motion={props.motion} selected={selectedItem===item.id} onSelect={()=>setSelectedItem(selectedItem===item.id?null:item.id)} onHover={value=>setHovered(value?`item:${item.id}`:null)} position={p?[p[0]+.45,.7,p[2]+.15]:point?.position??[zone[0]+(index%3)*.45-.5,zone[0]===0&&layout.assets.includes("table")?1.12:.15,zone[2]+.1]}/>;})}

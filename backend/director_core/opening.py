@@ -77,6 +77,12 @@ OPENING_SYSTEM = f"""你是短剧的前期策划，把作者的一句话想法�
 5. 用中文写作正文，id 用英文小写。"""
 
 
+def _with_template_drama(spec: dict) -> dict:
+    """规则路径也要有契约与节拍：用模板补齐，绝不联网。"""
+    from .dramatic import ensure_dramatic
+    return ensure_dramatic(dict(spec), use_model=False)
+
+
 def model_available() -> bool:
     from .llm_client import api_key
     return bool(api_key())
@@ -146,6 +152,8 @@ def expand_with_model(premise: str, client: LLMClient | None = None) -> dict:
         "scene_manifest": manifest,
     }
     verified = portable_spec(spec)
+    from .dramatic import ensure_dramatic
+    verified = ensure_dramatic(verified, use_model=True, client=client)
     world = verified.get("world") or {}
     world.setdefault("locations", locations)
     world.setdefault("connections", {})
@@ -165,6 +173,7 @@ def expand(premise: str, client: LLMClient | None = None) -> dict:
         from .scene_input import expand as expand_rule
         result = expand_rule(premise)
         result["source"] = "rule"
+        result["scene_spec"] = _with_template_drama(result.get("scene_spec") or {})
         return result
     try:
         spec = expand_with_model(premise, client)
@@ -173,6 +182,7 @@ def expand(premise: str, client: LLMClient | None = None) -> dict:
         result = expand_rule(premise)
         result["source"] = "rule"
         result["fallback_reason"] = f"{type(exc).__name__}: {exc}"[:200]
+        result["scene_spec"] = _with_template_drama(result.get("scene_spec") or {})
         return result
     return {
         "premise": premise,

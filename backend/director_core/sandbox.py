@@ -11,6 +11,7 @@ from typing import Protocol
 
 from .agent import Agent, WorldEngine
 from .entity_state import EntityStateMachine
+from .dramatic import normalize_event_fields
 
 from .models import new_id, normalize_spec
 
@@ -37,9 +38,15 @@ class LLMCandidateGenerator:
             "返回 JSON：action(外在动作)、dialogue、inner_thought、action_type、"
             "move_to(地点，可省略)、target_id(可省略)、"
             "transfer({item_id,to_actor_id}，仅转交自己持有的道具，可省略)、"
-            "pickup_item_id、drop_item_id(均可省略)、reveal_fact_ids(公开已知信息ID数组)。"
+            "pickup_item_id、drop_item_id(均可省略)、reveal_fact_ids(公开已知信息ID数组)、"
+            "intent(这一步你想达成什么)、obstacle(你认为的阻力，没有就留空)、"
+            "consequence(这一步造成的可见后果)、tension_delta(0-5 的紧张度增量)、"
+            "revealed_information(本步公开的信息，字符串数组)、"
+            "caused_by_event_ids(你回应的既有事件 id 数组，没有就留空)。"
             + constraint +
             "台词可以说谎，但不会因此改变事实。"
+            "你要围绕 context.beat 里这一拍的目的行动：推动它、阻挠它或让它更难收场，"
+            "并尽量回应 context 里你看见过的既有事件（把它们写进 caused_by_event_ids）。"
             "dialogue 尽量不超过 40 字；想说的多就拆成两三个短句，便于逐句显示。",
             json.dumps(context, ensure_ascii=False), tag=f"narrative_decision_{actor['id']}",
         )
@@ -99,6 +106,9 @@ def role_context(spec: dict, state: dict, actor_id: str) -> dict:
                       if k in {'name', 'locations', 'connections', 'setting', 'deadline_hint'}},
             'public_canon': spec.get('public_canon', ''),
             'scene_goal': spec.get('goal', ''), 'step': state.get('step', 0),
+            'contract': copy.deepcopy(spec.get('contract') or {}),
+            'beat': copy.deepcopy(((spec.get('beats') or [{}])[int((state.get('beat_state') or {}).get('index', 0)) % max(1, len(spec.get('beats') or [{}]))]) if spec.get('beats') else {}),
+            'beat_progress': copy.deepcopy(state.get('beat_state') or {}),
             'co_present': public_people, 'known_facts': facts, 'available_items': items,
             'observed_events': event_text,
             'visible_event_records': [{k: copy.deepcopy(v) for k, v in e.items() if k in {'id', 'actor_id', 'action', 'dialogue', 'location', 'step', 'action_type'}} for e in visible],
@@ -173,9 +183,16 @@ def project(spec: dict, state: dict, events: list[dict]) -> dict:
         allowed = {'id', 'actor_id', 'step', 'action', 'public_action', 'dialogue', 'inner_thought',
                    'action_type', 'location', 'move_to', 'goto_location', 'target_id',
                    'transfer', 'pickup_item_id', 'drop_item_id', 'reveal_fact_ids',
-                   'source', 'original_proposal', 'author_edits', 'referenced_event_ids'}
+                   'source', 'original_proposal', 'author_edits', 'referenced_event_ids',
+                   # 剧情结构层：让事件能回答"想干什么、遇到什么阻力、造成什么后果、推进了哪一拍"
+                   'intent', 'obstacle', 'consequence', 'beat_id', 'tension_delta',
+                   'revealed_information', 'caused_by_event_ids'}
         for key in set(event) - allowed:
             event.pop(key)
+        _beats = spec.get('beats') if isinstance(spec.get('beats'), list) else []
+        _index = int((state.get('beat_state') or {}).get('index', 0))
+        _beat_id = str((_beats[_index] if _beats and _index < len(_beats) else {}).get('beat_id', ''))
+        normalize_event_fields(event, default_beat=_beat_id)
         event['checks'] = []          # 先清空，后续字段级降级与检查都在此之后追加
         actor_id = event.get('actor_id')
         if not isinstance(actor_id, str) or actor_id not in actors:

@@ -12,6 +12,7 @@ from .service import NarrativeService
 from .offline import OfflineGenerator
 from .scene_input import portable_spec
 from .sandbox import project, role_context
+from .dramatic import render_screenplay, render_storyboard
 
 class NotFoundError(LookupError): pass
 
@@ -186,7 +187,7 @@ class DirectorStore:
     def _draft_view(self,d):
         result=deepcopy(d)
         result.update({'draft_id':d['id'],'base_revision':d['base_revision'],'candidate_events':deepcopy(d['payload'].get('events',[])),
-                       'locks':deepcopy(d['payload'].get('locks',[])),'generation_source':d['payload'].get('source'),'validation':{'valid':True,'errors':[]},
+                       'locks':deepcopy(d['payload'].get('locks',[])),'generation_source':d['payload'].get('source'),'assessment':deepcopy(d['payload'].get('assessment')),'validation':{'valid':True,'errors':[]},
                        'status':('previewed' if d.get('preview') else 'pending') if d['status']=='awaiting_approval' else d['status'],'version':d['version']})
         result.update(proposed_state=None,preview_state=None,state_diff={})
         if d.get('preview') is not None:
@@ -244,7 +245,22 @@ class DirectorStore:
         bid=self._bid(sid,bid); branch=self._branch(sid,bid); return self.service.cancel_directive(self.owner,sid,bid,branch['revision'],did)
     def create_output(self,sid,payload):
         bid=self._bid(sid,payload.get('branch_id')); branch=self._branch(sid,bid); ids=payload.get('source_event_ids') or payload.get('event_ids') or [e['id'] for e in branch['state'].get('events',[])]
-        kind=str(payload.get('type') or 'script'); content=self.service.output(self.owner,sid,bid,'script' if kind=='screenplay' else kind,ids,base_revision=branch['revision'])
+        kind=str(payload.get('type') or 'script')
+        # 剧本/分镜默认用确定性渲染器：格式稳定、可复现、每段都能指回来源事件（不调模型）
+        if payload.get('deterministic', True) and kind in {'script','screenplay','storyboard'}:
+            committed=branch['state'].get('events',[])
+            chosen=[e for e in committed if e.get('id') in set(ids)] or list(committed)
+            if not chosen:
+                raise ValueError('还没有正式事件可以整理成输出：请先提交至少一轮剧情')
+            if kind=='storyboard':
+                content={'kind':'storyboard','shots':render_storyboard(branch['spec'],chosen)}
+            else:
+                content={'kind':'screenplay','text':render_screenplay(branch['spec'],chosen)}
+            return self._store_output(sid,content,ids)
+        content=self.service.output(self.owner,sid,bid,'script' if kind=='screenplay' else kind,ids,base_revision=branch['revision'])
+        return self._store_output(sid,content,ids)
+
+    def _store_output(self,sid,content,ids):
         oid=new_id('output'); out={'output_id':oid,**content,'source_event_ids':ids,'editable':True,'created_at':now_iso()}
         with self.repo._connection(write=True) as c:
             c.execute('INSERT INTO director_outputs VALUES (?,?,?)',(oid,sid,self.repo._json(out)))

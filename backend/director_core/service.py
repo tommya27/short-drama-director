@@ -7,6 +7,7 @@ from typing import Any, Callable
 from .models import default_boardroom_spec, default_state, normalize_spec, new_id
 from .repository import NarrativeRepository, ConflictError
 from .sandbox import AgentSandbox, LLMCandidateGenerator, project
+from .dramatic import assess, ensure_dramatic, render_screenplay, render_storyboard
 
 
 class NarrativeService:
@@ -65,6 +66,11 @@ class NarrativeService:
         payload = {"events": events, "locks": locks,
                    "source": getattr(generator, "source", "injected_test_generator") if generator and not isinstance(generator, LLMCandidateGenerator) else "llm_role_agents"}
         project(branch["spec"], branch["state"], events)
+        # 剧情检查：只提示，不改事件；作者可据此决定干预或进入下一拍
+        payload["assessment"] = assess(branch["spec"], branch["state"], events,
+                                       contract=branch["spec"].get("contract"),
+                                       beats=branch["spec"].get("beats"),
+                                       previous_tension=int((branch["state"].get("beat_state") or {}).get("tension", 0)))
         progress(95, "保存候选草稿（尚未提交）")
         return self.repo.create_draft(owner, scene_id, branch_id, base_revision, payload,
                                       regenerate_from=regenerate_from, regenerate_version=regenerate_version)

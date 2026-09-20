@@ -35,3 +35,28 @@
 - `backend/director_core/offline.py`、`scene_input.py`、`engine.py`：新项目适配层，提供移动、回应、道具交付、信息披露、指令和 HTTP 契约映射。
 
 新运行时 `rg` 检查无 `from core` 或 `import core`；启动时不依赖旧工作区路径。
+
+## 2026-09-20：账号与令牌模块移植
+
+来源：用户旧小说平台 `api/auth.py`（自有代码，用户授权内部复用）。
+
+| 项 | 内容 |
+|---|---|
+| 源文件 | `D:/Deepseek harness workplace/小说写作平台/api/auth.py` |
+| SHA-256 | `2FDFC56B58761C3596B17DA47D34D8B52DD0964692DA65B49EBA8F63297B51B3` |
+| 移植目标 | `backend/director_core/auth.py` |
+
+**保持等价**：PBKDF2-HMAC-SHA256（20 万次迭代 + 每账号随机盐）、自签 HMAC 令牌
+（`base64url(payload).base64url(hmac_sha256(secret, payload))`，payload 含用户名/过期/token_version）、
+`hmac.compare_digest` 恒定时比较、`token_version` 全量吊销、账号表先写临时文件再替换。
+
+**改写范围**（逐条）：
+- 环境变量前缀 `NOOVEL_*` → `DIRECTOR_*`（AUTH_DIR / AUTH_SECRET / TOKEN_TTL_DAYS / QUOTA_DAILY_TASKS / QUOTA_MAX_CONCURRENT）；
+- 账号目录默认 `output/auth` → **`data/auth`**（新项目自己的数据目录，绝不读写旧平台账号表）；
+- 令牌有效期默认 30 天 → **7 天**；口令最短 6 位 → **8 位**（本版计划公网访问）；
+- 未移植：旧平台的限流（rate_limit）、登录事件日志、管理台页面、配额的实际扣减逻辑（字段保留）；
+- 新增：`has_users()` 与 `owner_username()`，用于"还没有账号时保持单机单用户行为"的平滑过渡。
+
+**验证**：`backend/tests/test_auth.py` 14 条离线测试（口令校验、用户名/口令规则、令牌往返与过期、
+签名篡改、全量吊销、改口令失效旧会话、停用/启用、无账号时保持单机、管理员优先、列表不含盐与散列、Bearer 解析、删号）。
+**限制**：账号表是单文件 JSON（适合几十个账号，不适合大规模并发写入）；未做注册与找回口令，账号由管理员创建。

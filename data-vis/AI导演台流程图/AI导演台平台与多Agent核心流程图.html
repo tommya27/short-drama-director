@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>可视化 AI 导演台 · 平台流程与多 Agent 核心链路</title>
+<script src="https://image.uc.cn/s/uae/g/3n/mos-production/mermaid.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "微软雅黑", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0A0A0F;
+    color: #FAFAFA;
+    line-height: 1.65;
+  }
+  .page-wrapper { max-width: 1680px; margin: 0 auto; padding: 44px 30px 70px; }
+
+  /* ── 页头 ── */
+  .hero { padding: 8px 6px 30px; border-bottom: 1px solid #26262E; margin-bottom: 34px; }
+  .hero .eyebrow {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-size: 13px; letter-spacing: 2.5px; color: #F59E0B; font-weight: 700; margin-bottom: 14px;
+  }
+  .hero .eyebrow::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: #F59E0B; box-shadow: 0 0 12px #F59E0B; }
+  .hero h1 { margin: 0 0 12px; font-size: 34px; font-weight: 700; letter-spacing: -0.5px; }
+  .hero p { margin: 0; font-size: 15.5px; color: #A1A1AA; max-width: 1080px; }
+  .hero .meta { margin-top: 16px; font-size: 12.5px; color: #71717A; font-family: "Courier New", monospace; letter-spacing: 1px; }
+
+  /* ── 图例 ── */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center;
+    background: #12121A; border: 1px solid #26262E; border-radius: 12px;
+    padding: 15px 20px; margin-bottom: 38px;
+  }
+  .legend .lg-title { font-size: 12.5px; color: #71717A; letter-spacing: 1.5px; font-weight: 700; margin-right: 4px; }
+  .legend .lg { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #A1A1AA; }
+  .legend .sw { width: 26px; height: 15px; border-radius: 3px; flex: none; }
+  .sw-api { background: #12121A; border: 1px solid #3F3F4A; }
+  .sw-ai { background: #2A1F0A; border: 1.5px solid #F59E0B; }
+  .sw-rule { background: #16161E; border: 1px solid #52525E; }
+  .sw-dec { background: #1A1A24; border: 1.5px solid #F59E0B; }
+  .sw-human { background: #1F1A10; border: 1.5px solid #C2870A; }
+  .sw-warn { background: #241C0C; border: 1px solid #B4761A; }
+  .sw-danger { background: #251315; border: 1.5px solid #C2453F; }
+  .sw-term { background: #F59E0B; border: 1px solid #F59E0B; }
+
+  /* ── 图区块 ── */
+  section { margin-bottom: 46px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; flex-wrap: wrap; }
+  .sec-no {
+    font-family: "Courier New", monospace; font-size: 13px; font-weight: 700; color: #F59E0B;
+    border: 1px solid rgba(245,158,11,0.42); border-radius: 6px; padding: 3px 9px; letter-spacing: 1px; flex: none;
+  }
+  .sec-head h2 { margin: 0; font-size: 23px; font-weight: 700; letter-spacing: -0.3px; }
+  .sec-desc { margin: 0 0 18px; font-size: 14px; color: #A1A1AA; max-width: 1180px; }
+  .sec-desc code { font-family: "Courier New", monospace; color: #FCD34D; font-size: 13px; background: rgba(245,158,11,0.09); padding: 1px 5px; border-radius: 3px; }
+
+  .card {
+    background: #0F0F16; border: 1px solid #26262E; border-radius: 14px;
+    padding: 26px 22px; overflow-x: auto;
+  }
+  .mermaid { display: flex; justify-content: center; min-width: 100%; }
+  .mermaid svg { max-width: none !important; height: auto; }
+
+  /* ── 表格 ── */
+  .table-responsive { overflow-x: auto; border: 1px solid #26262E; border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 720px; }
+  th, td { padding: 11px 15px; text-align: left; border-bottom: 1px solid #1E1E28; vertical-align: top; }
+  thead th {
+    background: #1A1A24; color: #F59E0B; font-size: 12.5px; letter-spacing: 1px;
+    font-weight: 700; border-bottom: 1px solid #33333F; white-space: nowrap;
+  }
+  tbody tr:nth-child(even) { background: #12121A; }
+  tbody tr:last-child td { border-bottom: none; }
+  td code { font-family: "Courier New", monospace; font-size: 12.5px; color: #FCD34D; }
+  td .c-vis { color: #86EFAC; font-weight: 700; }
+  td .c-hid { color: #F0A9A5; font-weight: 700; }
+  td .c-warn { color: #F0C987; }
+  td .c-dim { color: #71717A; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .panel { background: #12121A; border: 1px solid #26262E; border-radius: 12px; padding: 20px 22px; }
+  .panel h3 { margin: 0 0 14px; font-size: 15px; letter-spacing: 1px; }
+  .panel h3.vis { color: #86EFAC; }
+  .panel h3.hid { color: #F0A9A5; }
+  .panel ul { margin: 0; padding-left: 0; list-style: none; }
+  .panel li { position: relative; padding-left: 18px; margin-bottom: 9px; font-size: 13.5px; color: #D4D4D8; }
+  .panel li::before { content: ""; position: absolute; left: 0; top: 8px; width: 6px; height: 6px; border-radius: 50%; }
+  .panel.vis li::before { background: #86EFAC; }
+  .panel.hid li::before { background: #C2453F; }
+  .panel li code { font-family: "Courier New", monospace; font-size: 12.5px; color: #FCD34D; }
+  .panel li .note { color: #71717A; font-size: 12.5px; }
+
+  footer { margin-top: 52px; padding-top: 22px; border-top: 1px solid #26262E; font-size: 12.5px; color: #71717A; }
+  footer strong { color: #A1A1AA; }
+
+  @media (max-width: 900px) {
+    .page-wrapper { padding: 26px 14px 50px; }
+    .hero h1 { font-size: 26px; }
+    .two-col { grid-template-columns: 1fr; }
+    .card { padding: 18px 12px; }
+    .sec-head h2 { font-size: 19px; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <div class="hero">
+    <div class="eyebrow">DIRECTOR'S DESK · SYSTEM FLOW</div>
+    <h1>可视化 AI 导演台 · 平台流程与多 Agent 核心链路</h1>
+    <p>四张流程图覆盖从「一句话想法」到「可拍交付物」的完整链路，重点展开多角色智能体的独立决策、候选裁决与作者控制机制。所有节点、函数名与判定分支均取自后端 <code style="font-family:'Courier New',monospace;color:#FCD34D">director_core</code> 与 <code style="font-family:'Courier New',monospace;color:#FCD34D">api</code> 的真实实现。</p>
+    <div class="meta">FastAPI + SQLite + React/three.js · 94 项后端测试通过 · 图示基于源码梳理</div>
+  </div>
+
+  <div class="legend">
+    <span class="lg-title">图例</span>
+    <span class="lg"><span class="sw sw-api"></span>接口 / 服务调用</span>
+    <span class="lg"><span class="sw sw-ai"></span>模型 / 智能体环节</span>
+    <span class="lg"><span class="sw sw-rule"></span>确定性规则（不调模型）</span>
+    <span class="lg"><span class="sw sw-dec"></span>判定点</span>
+    <span class="lg"><span class="sw sw-human"></span>作者（导演）动作</span>
+    <span class="lg"><span class="sw sw-warn"></span>可见降级 / 软标注</span>
+    <span class="lg"><span class="sw sw-danger"></span>硬拦截 / 拒绝</span>
+    <span class="lg"><span class="sw sw-term"></span>最终产出</span>
+  </div>
+
+  <!-- ══════════ 图一 ══════════ -->
+  <section>
+    <div class="sec-head"><span class="sec-no">01</span><h2>平台端到端全景流程</h2></div>
+    <p class="sec-desc">从一句话想法到可拍交付物的九个阶段。注意两处「不静默降级」的设计：启动时声明用模型却缺密钥会直接拒绝启动；剧本润色一旦丢失来源标记会退回确定性草稿。</p>
+    <div class="card" data-chart="true">
+<pre class="mermaid">
+flowchart TD
+    START(["作者输入一句话想法"]):::human --> EXPAND["POST /api/v1/ideas/expand<br/>opening.expand()"]:::api
+
+    EXPAND --> MODE{"启动时运行模式判定<br/>runtime.build_store()"}:::decision
+    MODE -.->|"显式 live 但缺密钥"| REJECT["MissingKeyError<br/>拒绝启动 · 不静默降级"]:::danger
+    MODE -->|"有密钥 → live"| ML["模型路径<br/>LLM 按严格 JSON 结构扩写"]:::ai
+    MODE -->|"无密钥 → offline"| MR["规则路径<br/>本地确定性模板 · 永不联网"]:::rule
+
+    ML --> SPEC["SceneSpec + scene_manifest<br/>剧名 / 角色（公开目标·隐藏目标·秘密）<br/>道具 / 事实 / 舞台布局<br/>source = llm"]:::data
+    MR --> SPEC2["SceneSpec + scene_manifest<br/>source = rule"]:::data
+
+    SPEC --> CREATE["POST /api/v1/scenes<br/>create_scene()"]:::api
+    SPEC2 --> CREATE
+    CREATE --> DRAMA["ensure_dramatic()<br/>本场契约（主角·对手·代价·必要变化）<br/>+ 5 个剧情节拍<br/>dramatic_source = llm / template"]:::ai
+    DRAMA --> PERSIST[("SQLite 落库<br/>scenes + branches<br/>+ checkpoint（rev = 0）")]:::store
+
+    PERSIST --> STAGE["GET /scenes/:sid<br/>前端 layoutFor() 合并场景 manifest"]:::api
+    STAGE --> FORM["stageForm() 场景形态判定<br/>interior 室内 / outdoor 室外<br/>vehicle 载具 / street 街景 / cave 矿洞"]:::rule
+    FORM --> RENDER["程序化 3D / 2.5D 布景<br/>20+ 零件库拼装 · 零外部模型依赖"]:::render
+    RENDER --> ART["可选 T1 文生图<br/>backdrop / portrait / prop<br/>逐张记录提示词·模型·尺寸·sha256"]:::ai
+
+    subgraph LOOP["试演循环 · 每一轮"]
+        direction TB
+        D1["POST /scenes/:sid/drafts<br/>多 Agent 生成候选<br/>（详见 02 / 03 图）"]:::ai
+        D1 --> D2["POST /drafts/:did/preview<br/>project() 在副本上裁决<br/>产出 state_diff"]:::api
+        D2 --> D3{"作者决策"}:::decision
+        D3 -->|"改台词 / 锁定字段"| D5["PATCH /drafts/:did<br/>candidate_events + locks<br/>清空 preview · 必须重新预览"]:::human
+        D3 -->|"给角色下导演指令"| D6["POST /directives<br/>target_actor_id + start_step / end_step"]:::human
+        D3 -->|"另开分支试演"| D7["POST /branches<br/>深拷贝 spec + state · 完全隔离"]:::human
+        D3 -->|"放弃本轮"| D8["POST /drafts/:did/discard"]:::human
+        D3 -->|"采纳并提交"| D4["POST /drafts/:did/commit<br/>三重校验 → revision + 1<br/>写不可变 checkpoint"]:::store
+        D5 --> D2
+        D6 --> D1
+        D7 --> D1
+        D4 --> D9["POST /beats/advance<br/>作者手动推进节拍<br/>index + 1 · tension 取当前最大"]:::human
+    end
+
+    ART --> D1
+    D9 -->|"未到第 5 拍 · 继续试演"| D1
+    D9 -->|"5 拍走完"| OUT["POST /scenes/:sid/outputs"]:::api
+    OUT --> ODET{"polish 参数"}:::decision
+    ODET -->|"false（默认）"| O1["确定性渲染<br/>场次卡 / 剧本 / 分镜<br/>未调用模型 · 完全可复现"]:::rule
+    ODET -->|"true"| O2["真模型润色"]:::ai
+    O2 --> O3{"来源标记 event_id<br/>是否逐一保留?"}:::decision
+    O3 -->|"是"| O4["润色剧本 polished = true<br/>带表演提示"]:::data
+    O3 -->|"丢失 / 空返回 / 调用失败"| O1
+    O1 --> FINAL(["可拍交付物<br/>逐镜可回溯到来源事件"]):::terminal
+    O4 --> FINAL
+
+    PERSIST -.->|"GET /scenes/:sid/replay"| REPLAY["replay_checkpoints()<br/>沿父分支链收集历史帧<br/>只读 · 不改正式状态 · 不调模型"]:::api
+    REPLAY -.-> RUI["前端回放<br/>播放 / 暂停 / 上一刻 / 下一刻 / 变速"]:::render
+
+    classDef api fill:#12121A,stroke:#3F3F4A,stroke-width:1px,color:#D4D4D8
+    classDef ai fill:#2A1F0A,stroke:#F59E0B,stroke-width:1.5px,color:#FDE68A
+    classDef rule fill:#16161E,stroke:#52525E,stroke-width:1px,color:#A1A1AA
+    classDef decision fill:#1A1A24,stroke:#F59E0B,stroke-width:1.5px,color:#FAFAFA
+    classDef data fill:#17171F,stroke:#4A4A58,stroke-width:1px,color:#E4E4E7
+    classDef human fill:#1F1A10,stroke:#C2870A,stroke-width:1.5px,color:#FCD34D
+    classDef store fill:#101018,stroke:#F59E0B,stroke-width:2px,color:#FAFAFA
+    classDef warn fill:#241C0C,stroke:#B4761A,stroke-width:1px,color:#F0C987
+    classDef danger fill:#251315,stroke:#C2453F,stroke-width:1.5px,color:#F0A9A5
+    classDef render fill:#191512,stroke:#7A6248,stroke-width:1px,color:#DCC9B0
+    classDef terminal fill:#F59E0B,stroke:#F59E0B,stroke-width:2px,color:#0A0A0F
+</pre>
+    </div>
+  </section>
+
+  <!-- ══════════ 图二 ══════════ -->
+  <section>
+    <div class="sec-head"><span class="sec-no">02</span><h2>多 Agent 单轮决策链路（核心）</h2></div>
+    <p class="sec-desc">一轮生成的完整调用链：<code>DirectorStore.create_draft()</code> → <code>NarrativeService.generate_draft()</code> → <code>AgentSandbox.propose()</code> → <code>project()</code> → <code>dramatic.assess()</code>。角色按顺序逐个决策，每个角色只看到 <code>role_context()</code> 过滤后的世界——这是「多智能体」而非「一段文本分角色朗读」的关键。</p>
+    <div class="card" data-chart="true">
+<pre class="mermaid">
+flowchart TD
+    IN["POST /api/v1/scenes/:sid/drafts<br/>branch_id · base_revision · request_id"]:::api --> CD["DirectorStore.create_draft()"]:::api
+    CD --> CANCEL{"request 已被取消?"}:::decision
+    CANCEL -->|"是"| DISCARD["迟到结果存为 discarded<br/>不可提交 · ConflictError"]:::danger
+    CANCEL -->|"否"| HAS{"payload 含<br/>candidate_events?"}:::decision
+    HAS -->|"是 · 作者手写候选"| PROJ
+    HAS -->|"否 · AI 生成"| GEN["NarrativeService.generate_draft()"]:::api
+
+    GEN --> SBX["AgentSandbox.propose()<br/>for actor in spec.characters（逐个串行）"]:::ai
+    SBX --> ACTIVE{"actor.status == active?"}:::decision
+    ACTIVE -->|"否"| SKIP["跳过该角色 · 不参与本轮"]:::rule
+    ACTIVE -->|"是"| CTX["role_context()<br/>构建该角色专属的隔离视图"]:::ai
+
+    CTX --> VIS["可见信息<br/>——————————<br/>自身卡片（card_fields 白名单）<br/>当前 actor_state<br/>world：locations / connections / setting<br/>contract 本场契约 · 当前 beat<br/>co_present：同地点角色的公开身份<br/>known_facts：known_by 含自己的事实<br/>available_items：自己持有或同地点<br/>observed_events：observed_by 含自己<br/>director_instructions：针对自己且未过期"]:::data
+    CTX --> HID["刻意隔离<br/>——————————<br/>他人的 secret / hidden_goal<br/>他人的 inner_thought<br/>自己未观察到的事件<br/>自己尚不知道的事实<br/>其他角色的私有状态"]:::danger
+
+    VIS --> GMODE{"generator 类型<br/>（启动时注入）"}:::decision
+    HID --> GMODE
+    GMODE -->|"live"| LLM["LLMCandidateGenerator.propose()<br/>llm.chat_json(system, user)"]:::ai
+    GMODE -->|"offline"| OFF["OfflineGenerator.propose()<br/>step % 4 轮转模板<br/>移动 / 交付 / 披露 / 观察"]:::rule
+
+    LLM --> ISDICT{"输出是 JSON 对象?"}:::decision
+    ISDICT -->|"否"| VERR["ValueError<br/>角色候选必须是 JSON 对象"]:::danger
+    ISDICT -->|"是"| NORM["null 字段归一化<br/>→ 空串 / 空数组"]:::rule
+    OFF --> NORM
+
+    NORM --> CAND["候选事件 · 两条路径结构完全一致<br/>——————————<br/>action · dialogue · inner_thought<br/>action_type · move_to · target_id<br/>transfer · pickup_item_id · drop_item_id<br/>reveal_fact_ids · intent · obstacle<br/>consequence · tension_delta<br/>revealed_information · caused_by_event_ids"]:::data
+    CAND --> TAG["追加 id / step / actor_id / checks<br/>source = llm 或 offline_rule_v1"]:::data
+    TAG --> SKIP
+    SKIP --> MORE{"还有未处理角色?"}:::decision
+    MORE -->|"是 · 回到循环"| SBX
+    MORE -->|"否 · 本轮候选齐备"| PROJ
+
+    PROJ["project(spec, state, events)<br/>proposed = deepcopy(state) 副本裁决"]:::ai --> PIPE["六道裁决关卡<br/>（详见 03 图）"]:::ai
+    PIPE --> DIFF["state_diff<br/>对比原始 state 与 proposed<br/>actors / items / facts / step<br/>event_counter / directives"]:::data
+    DIFF --> ASSESS["dramatic.assess()<br/>8 项剧情检查<br/>冲突 · 推进 · 信息变化 · 因果<br/>压力升级 · 人物主动性 · 可拍性 · 结尾准备<br/>只产出 checks + warnings · 不修改任何事件"]:::rule
+    ASSESS --> DRAFT[("草稿落库<br/>status = awaiting_approval<br/>正式状态完全未变")]:::store
+
+    DRAFT --> NOTE["同轮内角色之间互不看见<br/>全部从同一份状态快照出发<br/>相互影响发生在下一轮<br/>（提交后 role_context 读到新状态）"]:::warn
+
+    classDef api fill:#12121A,stroke:#3F3F4A,stroke-width:1px,color:#D4D4D8
+    classDef ai fill:#2A1F0A,stroke:#F59E0B,stroke-width:1.5px,color:#FDE68A
+    classDef rule fill:#16161E,stroke:#52525E,stroke-width:1px,color:#A1A1AA
+    classDef decision fill:#1A1A24,stroke:#F59E0B,stroke-width:1.5px,color:#FAFAFA
+    classDef data fill:#17171F,stroke:#4A4A58,stroke-width:1px,color:#E4E4E7
+    classDef human fill:#1F1A10,stroke:#C2870A,stroke-width:1.5px,color:#FCD34D
+    classDef store fill:#101018,stroke:#F59E0B,stroke-width:2px,color:#FAFAFA
+    classDef warn fill:#241C0C,stroke:#B4761A,stroke-width:1px,color:#F0C987
+    classDef danger fill:#251315,stroke:#C2453F,stroke-width:1.5px,color:#F0A9A5
+    classDef terminal fill:#F59E0B,stroke:#F59E0B,stroke-width:2px,color:#0A0A0F
+</pre>
+    </div>
+  </section>
+
+  <!-- ══════════ 图三 ══════════ -->
+  <section>
+    <div class="sec-head"><span class="sec-no">03</span><h2>候选裁决流水线 · project() 六道关卡</h2></div>
+    <p class="sec-desc">这是整个系统「可信」的来源：模型可以天马行空提议，但每一条都要过状态机与规则裁决。关键设计是<strong style="color:#F0C987">字段级可见降级</strong>——单个字段违规只忽略该操作并留下原因，整轮仍然成功返回；只有结构性问题才报 422。</p>
+    <div class="card" data-chart="true">
+<pre class="mermaid">
+flowchart TD
+    P0["候选事件进入 project()"]:::ai --> G1["关卡 1 · 字段白名单过滤<br/>移除 allowed 集合之外的字段"]:::rule
+    G1 --> G2{"关卡 2 · 字段是否违反世界规则?"}:::decision
+
+    G2 -->|"是 · 字段级可见降级"| DEG["忽略该字段，保留整轮其余动作与对白<br/>————————————————<br/>target_id 角色不存在 → 清空目标<br/>transfer 结构非法 → 忽略转交<br/>move_to 不在场景地点表 → 留在原地<br/>move_to 与当前地点不连通 → 留在原地<br/>pickup / drop 道具无主或不在场 → 忽略操作<br/>transfer 未持有或接收者不在场 → 忽略转交<br/>reveal 自己不知道的事实 → 忽略该条披露<br/>reveal 已锁定的事实 → 忽略该条披露<br/>————————————————<br/>每一处都写入 event.checks<br/>作者能看见降级原因，不是静默丢弃"]:::warn
+    G2 -->|"否 · 全部合法"| G3
+    DEG --> G3["关卡 3 · 实体状态机不变量<br/>EntityStateMachine._check_invariant()<br/>active：holder / location 恰有一个非空<br/>destroyed：两者都为 None<br/>道具流转经 pickup / transfer / drop / assess"]:::rule
+
+    G3 --> G4{"关卡 4 · 事实检查分级<br/>EntityStateMachine.assess()"}:::decision
+    G4 -->|"R1 · 道具已销毁"| L2["L2 硬拦<br/>apply_response() 改写为「摸空」<br/>叙事被真实修正"]:::danger
+    G4 -->|"R2 · 实体存在但不可即取"| L1["L1 软标注<br/>记录提示 · 不改叙事<br/>作者可自行覆盖"]:::warn
+    G4 -->|"无风险"| G5
+    L2 --> G5
+    L1 --> G5
+
+    G5["关卡 5 · 状态投影<br/>裁决结果立即写入 proposed 副本<br/>位置变更 · 道具流转 · 事实披露<br/>observed_by 重算（谁看见了这件事）"]:::ai --> G6{"关卡 6 · 是否存在结构性硬错误?"}:::decision
+
+    G6 -->|"缺动作文本 / 引用不存在的角色<br/>同一步同一角色重复事件<br/>字段类型错误"| E422["422 Unprocessable Entity<br/>整轮拒绝"]:::danger
+    G6 -->|"通过"| DONE(["裁决完成<br/>事件带 checks 与 source<br/>世界状态自洽可追溯"]):::terminal
+
+    DONE --> AS["dramatic.assess() 8 项剧情检查<br/>————————————————<br/>冲突是否成立 · 剧情是否推进<br/>信息是否变化 · 因果是否连贯<br/>压力是否升级 · 人物是否主动<br/>是否可拍 · 结尾是否准备<br/>————————————————<br/>纯规则判断 · 不调用模型<br/>只给分级提示，绝不改写正式剧情"]:::rule
+
+    classDef api fill:#12121A,stroke:#3F3F4A,stroke-width:1px,color:#D4D4D8
+    classDef ai fill:#2A1F0A,stroke:#F59E0B,stroke-width:1.5px,color:#FDE68A
+    classDef rule fill:#16161E,stroke:#52525E,stroke-width:1px,color:#A1A1AA
+    classDef decision fill:#1A1A24,stroke:#F59E0B,stroke-width:1.5px,color:#FAFAFA
+    classDef data fill:#17171F,stroke:#4A4A58,stroke-width:1px,color:#E4E4E7
+    classDef warn fill:#241C0C,stroke:#B4761A,stroke-width:1px,color:#F0C987
+    classDef danger fill:#251315,stroke:#C2453F,stroke-width:1.5px,color:#F0A9A5
+    classDef terminal fill:#F59E0B,stroke:#F59E0B,stroke-width:2px,color:#0A0A0F
+</pre>
+    </div>
+  </section>
+
+  <!-- ══════════ 图四 ══════════ -->
+  <section>
+    <div class="sec-head"><span class="sec-no">04</span><h2>作者控制链路 · 预览 / 提交三重校验 / 分支 / 回放</h2></div>
+    <p class="sec-desc">解决「改一处台词，下一次生成把已有决定覆盖掉」的机制层。预览只在状态副本上跑，提交必须同时通过幂等键、预览指纹、乐观锁三重校验，成功后才写不可变 checkpoint。</p>
+    <div class="card" data-chart="true">
+<pre class="mermaid">
+flowchart TD
+    A[("草稿 status = awaiting_approval<br/>正式状态未变")]:::store --> B["POST /drafts/:did/preview"]:::api
+    B --> C{"base_revision<br/>== branch.revision?"}:::decision
+    C -->|"否"| C1["ConflictError 409<br/>版本已过期"]:::danger
+    C -->|"是"| D["project() 在分支状态副本上裁决<br/>不触碰 branches 表"]:::ai
+    D --> E["save_preview()<br/>写 drafts.preview_json<br/>proposed_state + state_diff + fingerprint"]:::store
+    E --> F{"作者下一步"}:::decision
+
+    F -->|"编辑候选 / 锁定字段"| G["PATCH /drafts/:did<br/>version + candidate_events + locks<br/>unlock_paths 显式解锁"]:::human
+    G --> G1{"改动命中已锁定路径?<br/>_check_locked()"}:::decision
+    G1 -->|"是"| G2["ConflictError<br/>锁定内容不可覆盖"]:::danger
+    G1 -->|"否"| G3["草稿 version + 1<br/>清空 preview · 必须重新预览"]:::rule
+    G3 --> B
+
+    F -->|"放弃本轮"| GD["POST /drafts/:did/discard"]:::human
+    F -->|"采纳并提交"| H["POST /drafts/:did/commit<br/>revision + idempotency_key"]:::api
+
+    H --> I{"校验一 · 幂等键<br/>commits 表已有记录?"}:::decision
+    I -->|"key / version 匹配"| I1["直接返回原结果<br/>revision 不重复递增"]:::terminal
+    I -->|"key 不匹配"| I2["ConflictError 409"]:::danger
+    I -->|"首次提交"| J{"校验二 · 预览前置<br/>preview 存在<br/>且 fingerprint 匹配当前 version?"}:::decision
+    J -->|"否"| J1["ConflictError<br/>请先预览"]:::danger
+    J -->|"是"| K{"校验三 · 乐观锁<br/>status == awaiting_approval<br/>version 匹配<br/>base_revision == branch.revision"}:::decision
+    K -->|"否"| K1["ConflictError 409<br/>版本冲突"]:::danger
+    K -->|"三重全部通过"| L[("单事务写入<br/>events 落正式表<br/>revision + 1<br/>写不可变 checkpoint<br/>应用 locks 保护已确认字段")]:::store
+
+    L --> M{"作者是否要试另一种演法?"}:::decision
+    M -->|"POST /branches"| N["create_branch()<br/>深拷贝 spec + state + spec_revision<br/>父分支状态保持不变"]:::human
+    N --> O["分支上独立预览 / 提交<br/>revision 各自演进 · 互不污染"]:::ai
+    O --> A
+
+    M -->|"推进节拍"| P["POST /beats/advance<br/>作者触发 · 系统绝不自动推进<br/>completed_beats 记录当前拍<br/>index + 1 · revision + 1（旧候选失效）"]:::human
+    P --> A
+
+    L --> Q["GET /scenes/:sid/replay"]:::api
+    Q --> R["replay_checkpoints()<br/>递归收集父分支 checkpoint<br/>（截止到 fork 点 base_revision - 1）<br/>拼接本分支 · 按 revision 排序"]:::api
+    R --> S(["只读回放<br/>候选草稿与提交按钮停用<br/>按相邻帧角色位移计算展示时长<br/>不调用模型 · 不写回正式剧情"]):::terminal
+
+    classDef api fill:#12121A,stroke:#3F3F4A,stroke-width:1px,color:#D4D4D8
+    classDef ai fill:#2A1F0A,stroke:#F59E0B,stroke-width:1.5px,color:#FDE68A
+    classDef rule fill:#16161E,stroke:#52525E,stroke-width:1px,color:#A1A1AA
+    classDef decision fill:#1A1A24,stroke:#F59E0B,stroke-width:1.5px,color:#FAFAFA
+    classDef data fill:#17171F,stroke:#4A4A58,stroke-width:1px,color:#E4E4E7
+    classDef human fill:#1F1A10,stroke:#C2870A,stroke-width:1.5px,color:#FCD34D
+    classDef store fill:#101018,stroke:#F59E0B,stroke-width:2px,color:#FAFAFA
+    classDef warn fill:#241C0C,stroke:#B4761A,stroke-width:1px,color:#F0C987
+    classDef danger fill:#251315,stroke:#C2453F,stroke-width:1.5px,color:#F0A9A5
+    classDef terminal fill:#F59E0B,stroke:#F59E0B,stroke-width:2px,color:#0A0A0F
+</pre>
+    </div>
+  </section>
+
+  <!-- ══════════ 附表一 ══════════ -->
+  <section>
+    <div class="sec-head"><span class="sec-no">A</span><h2>角色上下文的信息可见性边界</h2></div>
+    <p class="sec-desc">多智能体是否成立，取决于每个角色看到的世界是否被正确裁剪。下表是 <code>role_context()</code> 的实际取舍——信息差由此产生，「角色 A 不知道角色 B 的秘密」才有戏剧张力。</p>
+    <div class="two-col">
+      <div class="panel vis">
+        <h3 class="vis">该角色可见</h3>
+        <ul>
+          <li><code>card_fields</code> 白名单内的自身卡片 <span class="note">— 公开身份、外形、行为锚点</span></li>
+          <li>当前 <code>actor_state</code> <span class="note">— 所在地点、持有道具</span></li>
+          <li><code>world</code>：locations / connections / setting</li>
+          <li><code>contract</code> 本场契约 + 当前 <code>beat</code> 节拍目标</li>
+          <li><code>co_present</code> 同地点角色 <span class="note">— 只给公开身份，不给内心</span></li>
+          <li><code>known_facts</code> <span class="note">— 仅 known_by 包含自己的事实</span></li>
+          <li><code>available_items</code> <span class="note">— 自己持有的，或当前地点的</span></li>
+          <li><code>observed_events</code> <span class="note">— 仅 observed_by 含自己、或自己是当事人的事件文本</span></li>
+          <li><code>director_instructions</code> <span class="note">— 仅针对自己、且在 start_step / end_step 区间内</span></li>
+        </ul>
+      </div>
+      <div class="panel hid">
+        <h3 class="hid">对该角色隔离</h3>
+        <ul>
+          <li>他人的 <code>secret</code> 与 <code>hidden_goal</code> <span class="note">— 信息差的来源</span></li>
+          <li>他人的 <code>inner_thought</code> 内心独白</li>
+          <li>自己未观察到的事件 <span class="note">— 不在场就不知道</span></li>
+          <li>自己尚不知道的事实 <span class="note">— 尝试披露会被裁决层忽略</span></li>
+          <li>其他角色的私有状态字段</li>
+          <li>非白名单的事件字段 <span class="note">— 在 project() 第一道关卡被过滤</span></li>
+          <li>其他分支的设定与状态 <span class="note">— 分支完全隔离，切换视图不混用</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 附表二 ══════════ -->
+  <section>
+    <div class="sec-head"><span class="sec-no">B</span><h2>关键判定点速查（答辩用）</h2></div>
+    <p class="sec-desc">流程图中所有菱形节点的汇总，附代码位置。左边一列是「系统自己会拦下来的」，右边是「交给作者决定的」。</p>
+    <div class="table-responsive" data-chart="true">
+      <table>
+        <thead>
+          <tr><th style="width:23%">判定场景</th><th style="width:20%">代码位置</th><th style="width:31%">系统行为</th><th style="width:26%">设计意图</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>声明用模型但没有密钥</td><td><code>runtime.py</code> build_store()</td><td class="c-hid">抛 MissingKeyError，拒绝启动</td><td>绝不把规则演示伪装成模型结果</td></tr>
+          <tr><td>模型输出不是 JSON 对象</td><td><code>sandbox.py</code> propose()</td><td class="c-hid">ValueError，该角色候选作废</td><td>结构不合法无法裁决，直接失败</td></tr>
+          <tr><td>移动目标不在场景地点表 / 不连通</td><td><code>sandbox.py</code> project()</td><td class="c-warn">留在原地，其余动作保留，写入 checks</td><td>字段级降级，一轮不因单点报废</td></tr>
+          <tr><td>拾取无主或不在场的道具</td><td><code>sandbox.py</code> project()</td><td class="c-warn">忽略该操作，动作与对白保留</td><td>世界规则优先于模型意愿</td></tr>
+          <tr><td>披露自己不知道 / 已锁定的事实</td><td><code>sandbox.py</code> project()</td><td class="c-warn">忽略该条披露</td><td>守住信息差，不让角色「开天眼」</td></tr>
+          <tr><td>道具已被销毁（R1）</td><td><code>entity_state.py</code> assess()</td><td class="c-hid">L2 硬拦，改写为「摸空」动作</td><td>物理事实不可违背</td></tr>
+          <tr><td>实体存在但不可即取（R2）</td><td><code>entity_state.py</code> assess()</td><td class="c-warn">L1 软标注，不改叙事</td><td>分级提示，作者可覆盖</td></tr>
+          <tr><td>缺动作文本 / 重复事件 / 类型错误</td><td><code>sandbox.py</code> project()</td><td class="c-hid">422 整轮拒绝</td><td>结构性问题无法局部修复</td></tr>
+          <tr><td>契约或节拍的模型生成失败</td><td><code>dramatic.py</code> ensure_dramatic()</td><td class="c-warn">回退模板，dramatic_source 标 template</td><td>可降级，但必须标明来源</td></tr>
+          <tr><td>未预览就提交 / 指纹不匹配</td><td><code>repository.py</code> commit()</td><td class="c-hid">ConflictError「请先预览」</td><td>作者必须看过裁决结果才能定稿</td></tr>
+          <tr><td>同一幂等键重复提交</td><td><code>repository.py</code> commit()</td><td class="c-vis">返回原结果，revision 不再递增</td><td>网络重试安全，不产生重复版本</td></tr>
+          <tr><td>base_revision 与分支不一致</td><td><code>repository.py</code> _current()</td><td class="c-hid">ConflictError 409</td><td>乐观锁，防止基于过期状态提交</td></tr>
+          <tr><td>改动命中已锁定字段路径</td><td><code>repository.py</code> _check_locked()</td><td class="c-hid">ConflictError「锁定内容不可覆盖」</td><td>已确认的决定不会被后续生成冲掉</td></tr>
+          <tr><td>润色后来源标记丢失 / 空返回</td><td><code>engine.py</code> create_output()</td><td class="c-warn">退回确定性草稿，记录 polish_reason</td><td>绝不交付无法回查的文本</td></tr>
+          <tr><td>生成过程中作者取消</td><td><code>engine.py</code> create_draft()</td><td class="c-warn">迟到结果存为 discarded，不可提交</td><td>取消语义严格，不留脏数据</td></tr>
+          <tr><td>角色 status 非 active</td><td><code>sandbox.py</code> propose()</td><td class="c-dim">跳过，不参与本轮</td><td>退场角色不再产生动作</td></tr>
+          <tr><td>节拍推进</td><td><code>service.py</code> advance_beat()</td><td class="c-vis">仅作者可触发，系统不自动推进</td><td>叙事节奏的决定权在人</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <strong>可视化 AI 导演台</strong> · 流程图依据 <code style="font-family:'Courier New',monospace;color:#A1A1AA">backend/director_core</code>（sandbox / engine / service / dramatic / entity_state / repository / opening / runtime）与 <code style="font-family:'Courier New',monospace;color:#A1A1AA">api/app.py</code> 的真实实现梳理绘制 · 图中函数名与判定分支均可在源码中逐一对应
+  </footer>
+
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: false,
+    securityLevel: 'loose',
+    theme: 'base',
+    themeVariables: {
+      background: '#0F0F16',
+      primaryColor: '#12121A',
+      primaryTextColor: '#FAFAFA',
+      primaryBorderColor: '#3F3F4A',
+      lineColor: '#F59E0B',
+      secondaryColor: '#1A1A24',
+      tertiaryColor: '#0F0F16',
+      clusterBkg: '#12121A',
+      clusterBorder: '#33333F',
+      edgeLabelBackground: '#0A0A0F',
+      titleColor: '#FAFAFA',
+      nodeTextColor: '#FAFAFA',
+      fontFamily: '"微软雅黑", "Microsoft YaHei", sans-serif',
+      fontSize: '14px'
+    },
+    flowchart: {
+      useMaxWidth: false,
+      htmlLabels: true,
+      curve: 'basis',
+      nodeSpacing: 42,
+      rankSpacing: 56,
+      padding: 12,
+      diagramPadding: 12
+    }
+  });
+  mermaid.run({ nodes: document.querySelectorAll('.mermaid') });
+</script>
+</body>
+</html>

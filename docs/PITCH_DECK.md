@@ -1,141 +1,56 @@
 # 路演材料：5 页双语 PPT + 3 分钟脚本
 
-项目：**可视化 AI 导演台**（短剧 / 视频前期创作工具）
-赛道：**AI 应用与工程**｜时长：3 分钟展示 + 2 分钟问答｜交付：≤5 页中英双语 PPT + 演示视频
+现场提交版：[PITCH_DECK.pptx](./PITCH_DECK.pptx)（5 页，中英双语）。同一份最终文件也保存在 [PITCH_DECK_FINAL.pptx](./PITCH_DECK_FINAL.pptx)。逐页讲稿见 [PITCH_SCRIPT.md](./PITCH_SCRIPT.md)。
 
----
+项目：**可视化 AI 导演台**（短剧剧情创作工具）  
+赛道：**AI 应用与工程**  
+演示时长：3 分钟展示 + 2 分钟问答
 
 ## 第 1 页｜封面
 
-**中文**：可视化 AI 导演台 —— 让角色先演一遍，你来定稿
-**English**：A Visual Director's Desk for Short Drama — let the cast play the scene out, you decide
+**中文**：可视化 AI 导演台——让角色先演一遍，你来定稿。  
+**English**：A Visual Director's Desk for Short Drama — Let the cast play the scene out. You decide.
 
-- 一句话：多个角色在同一个沙盘里行动、交流、互相影响；你观察、干预、确认，再整理成剧本与分镜草稿。
-- One line: Multiple characters act in one shared sandbox; you watch, intervene, approve — then turn it into script and storyboard drafts.
-- 关键词 / Keywords：多角色沙盘 Multi-agent sandbox ｜ 事实透镜 Fact lens ｜ 人工确认 Human-in-the-loop ｜ 2.5D/3D 显现 Visualization
-
----
+一句话：多个角色在同一个沙盘里行动、交流、互相影响；导演观察、干预、确认，再整理成剧本与分镜草稿。封面图是本工具生成的董事会会议室背板。
 
 ## 第 2 页｜问题与场景价值
 
-**中文**
-- 编剧拿到 AI 生成的一段剧本，看不见角色**为什么**这样说、依据是什么 —— 过程是黑盒。
-- 长篇/连续剧最贵的是**一致性**：谁知道什么、道具从哪来、第几集改了什么。
-- 试戏成本高：只想试一小段，却要重跑整段；改好的台词下次生成就被覆盖。
-- 目标用户：短剧编剧、导演/制片、剧情号创作者、小型编剧工作室。
+- AI 给出对白，却没有解释角色为什么这样说，过程是黑盒。
+- 短剧新手很难同时守住冲突、信息差、道具和人物目标。
+- 改一处台词，下一次生成可能覆盖已有决定。
+- 我们从一句话想法开始，帮助用户完成一场可检查、可修改的戏。
 
-**English**
-- AI hands you a scene, but not **why** a character says it — the process is a black box.
-- Continuity is the expensive part: who knows what, where props came from, what changed when.
-- Rehearsing is costly; your edits get overwritten on the next generation.
-- Users: short-drama writers, directors/producers, scripted short-video creators, small writers' rooms.
+English: AI returns text without the reasoning behind a character's line. Beginners struggle to keep conflict, information, props and goals consistent. The product helps them finish one playable scene through visible, author-controlled rehearsal.
 
----
+## 第 3 页｜24 小时增量
 
-## 第 3 页｜我们做了什么（24 小时增量）
+1. **剧情结构层 / Dramatic structure**：本场契约、5 个剧情节拍、8 项规则检查。
+2. **过程可见 / Visible process**：检查提议、事实检查、最终动作和状态变化。
+3. **作者掌控 / Author control**：预览、锁定、导演指令、分支试演，作者推进节拍。
+4. **来源诚实 / Honest provenance**：live/offline、素材、输出和润色均保留来源。
+5. **一句话开场 / One-line opening**：角色、道具、事实和舞台布局随题材适配。
 
-**中文**
-1. **剧情结构层**：本场戏契约（主角/对手/代价/必须发生的变化）+ **5 个剧情节拍** + **8 项剧情检查**
-   —— 把"角色轮流说话"变成"有冲突、有升级、有选择、有收尾的一场戏"。
-2. **看得见 Agent 怎么演**：2.5D 状态地图 + three.js 舞台；点任一事件看「提议 → 检查 → 最终 → 状态变化」；
-   说话人、指向线、被对话人三者同时高亮。
-3. **作者掌控**：候选 → 预览 → 提交（幂等 + 版本校验）；字段锁定、导演指令、分支试演；
-   **没有自动提交路径**，节拍也由作者推进。
-4. **真模型 + 真素材，且来源如实标注**：角色候选真模型生成（`source=llm`）；背板/立绘文生图带提示词与时间戳；
-   契约与分段标注"模型生成/模板"；剧情检查标注"规则判断，不调模型"；输出标注"确定性渲染/真模型润色"。
-5. **一句话 → 完整开场**：模型产出剧名/区域/角色/道具/事实 + **舞台布局**，场景形态随题材自适应
-   （华山＝室外山景、矿洞＝岩壁与矿车、游轮＝驾驶台）。
+## 第 4 页｜技术与边界
 
-**English**
-1. **Dramatic structure layer**: a scene contract (protagonist / opposing force / stakes / required change)
-   + **5 story beats** + **8 dramatic checks** — turning "characters take turns talking" into a scene with
-   conflict, escalation, a choice and a payoff.
-2. **See how agents act**: 2.5D state map + three.js stage; click any event to see
-   proposal → check → final → state change; speaker, talk line and the addressed character all highlight.
-3. **The author stays in control**: draft → preview → commit (idempotent, revision-checked); locks,
-   director directives, branch rehearsal; **no auto-commit**, and beats advance only when the author says so.
-4. **Real model, real assets — with honest provenance**: candidates from a live LLM (`source=llm`);
-   backdrops/portraits from text-to-image with prompts and timestamps; contract & beats labelled
-   model-or-template; checks labelled rule-based; outputs labelled deterministic or model-polished.
-5. **One line to a full opening**: the model returns title, areas, cast, props, facts **and the stage layout**;
-   the scene form adapts to the genre (mountain, mine, ship bridge).
+- React + TypeScript + three.js；FastAPI + SQLite；OpenAI 兼容模型；Seedream 视觉层。
+- live / offline 模式在界面显示；显式 live 缺密钥会拒绝启动。
+- 复用的是用户自己的叙事内核，源文件 hash 和改写范围已记录。
+- 3D 参考 FeiControl（MIT）的交互思路，没有复制代码或资产。
+- 不承诺一键生成整部作品；3D 不是电影级；剧情检查是作者辅助提示。
 
----
+## 第 5 页｜现场演示与下一步
 
-## 第 4 页｜技术与边界（诚实版）
+现场流程：一句话想法 → 确认契约、角色与舞台 → 推进一轮 → 检查候选事件 → 修改对白并锁定 → 预览 → 提交 → 推进节拍与回放 → 整理场次卡、剧本和分镜。
 
-**中文**
-- 架构：React + three.js 导演台 ｜ FastAPI 剧情内核（SQLite 版本化存储）｜ 真实模型（OpenAI 兼容）+ 文生图。
-- **可切换运行模式**：`live`（真模型）/ `offline`（本地确定性规则）；模式徽标常驻界面，
-  显式 live 但缺密钥会**拒绝启动**，绝不静默降级。
-- **复用边界**：复用来源是用户自己既有的叙事内核（`director_core` 迁移自用户旧工作区），
-  已记录源文件 sha256 与改写范围；3D 布局参考了 FeiControl（MIT，未复制其代码与资产）。
-- **不承诺**：不是一键生成整部作品；3D 美术未达电影级；事实判定不可能 100% 正确。
+下一步：真模型长时稳定性与费用评估；更多题材的场景 manifest 与可行走路线；image-to-3D 资产；多人协作。
 
-**English**
-- Stack: React + three.js console ｜ FastAPI narrative core (versioned SQLite) ｜ live LLM (OpenAI-compatible) + text-to-image.
-- **Switchable runtime mode**: `live` vs `offline`, with a persistent mode badge; explicit `live` without a key
-  refuses to start — never a silent downgrade.
-- **Reuse boundary**: the narrative core was ported from the user's own earlier workspace, with source sha256 and
-  edit scope recorded; 3D layout references FeiControl (MIT) without copying its code or assets.
-- **Not claimed**: not one-click full-length generation; not cinematic 3D; fact checking is not infallible.
+收尾：把最难观察和修改的角色互动，变成看得见、能干预、可追溯的工作台。
 
----
+## 答辩备用回答
 
-## 第 5 页｜演示流程与下一步
-
-**中文**
-演示（现场真跑）：输一句想法 → **模型生成完整开场（含舞台布局）** → 确认建场景 →
-推进一步 → 点事件看「提议→检查→结果」→ 点道具看事实 →
-改一句台词并锁定 → 加导演指令 → 预览（不改正式状态）→ 提交 → 生成美术素材 → 导出场次/剧本/分镜。
-下一步：真模型长时稳定性与费用评估；image→3D 资产（Tier 3）；多场景模板与协作。
-
-**English**
-Live demo: premise → model-generated opening (with stage layout) → confirm scene → step →
-inspect an event (proposal → check → result) → inspect a prop's facts →
-edit a line and lock it → add a director directive → preview (no state change) → commit →
-generate art assets → export scene card / script / storyboard.
-Next: long-run stability & cost of live mode; image-to-3D assets (Tier 3); more scene templates and collaboration.
-
----
-
-## 3 分钟演示脚本（照着念）
-
-**0:00–0:20 开场**
-> 现有 AI 剧本工具给你一段文字，但你看不见角色为什么这么说。我们做的是一个可视化导演台：
-> 多个角色在同一个沙盘里行动，你观察、干预、确认，再整理成剧本和分镜。
-
-**0:20–0:50 看见 Agent 怎么演**
-> 这是董事会会议室，三位角色各有自己的目标。我推进一步——注意，他们不是轮流发言，
-> 而是各自根据自己的视角提出候选。（点击一条事件）这里能看到：提议动作、事实检查、最终动作、状态变化。
-
-**0:50–1:30 剧情事实透镜**
-> 我点这份授权记录。谁持有、谁已知、依据是什么，都列在这里。
-> 现在加一条导演指令：让法务追问授权记录为什么没有签字。（推进）她真的追问了，
-> 而且系统检查出信息披露通过了——依据也留在事件里。
-
-**1:30–2:10 作者掌控**
-> 我改一句台词并锁定它。再重新生成——锁定内容不会被覆盖，因为候选要先预览，
-> 提交前正式剧情一点都不会变。（展示预览前后 revision 不变）这是刻意设计：没有自动提交路径。
-
-**2:10–2:40 真模型与真素材**
-> 这里的角色候选是真实模型生成的，事件里标着 source=llm。素材也是文生图：点一下生成背板与立绘，
-> 每张图都记录提示词、模型和生成时间——答辩时我能指给你看是哪一次生成的。
-
-**2:40–3:00 边界**
-> 我们不承诺一键生成整部短剧，也不做电影级 3D。我们做的是：把最难观察和修改的角色互动，
-> 变成看得见、能干预、可追溯的工作台。
-
----
-
-## 问答准备（如实回答）
-
-| 可能被问 | 建议回答 |
+| 问题 | 回答 |
 |---|---|
-| 和普通 AI 剧本工具的区别？ | 那些给**文本**，我们给**可控的过程**：提议/检查/结果可查，且能落到可拍的场次与分镜。 |
-| 用了 AI 工具吗？ | 用了。规则允许，我们公开记录使用范围（`docs/PROVENANCE.md`、`AI_USAGE_LOG`），且每条产出都实跑验证过。 |
-| 复用了旧项目吗？ | 复用了**用户自己**既有的叙事内核，已记录源文件 sha256 与改写范围；不含旧平台的产品页面与用户数据。 |
-| 现在是真模型还是规则？ | 界面徽标就写着：现在是「真模型试演 · deepseek-v4-flash」；离线规则模式作为断网备份，可一键切换并如实标注。 |
-| 一致性检查一定对？ | 不一定。我们把它做成**分级提醒**（通过/提醒/需确认），并保留作者覆盖；不静默改写。 |
-| 3D 到什么程度？ | 比赛交付是 2.5D + 可切换 3D 舞台（程序化布景、立绘精灵、相机预设）；生成式 3D 资产是下一步。 |
-| 24 小时做了什么？ | 见 `git log`：后端内核迁移与人工控制闭环、真实模型接入、模式徽标、文生图素材层、70 条测试。 |
+| 和普通 AI 剧本工具有什么区别？ | 它们主要给文本，我们给可控的过程：提议、检查、结果都可查，还能落到可拍的场次与分镜。 |
+| 用了 AI 吗？ | 用了，规则允许；界面和事件会标注模型、规则、素材和输出来源。 |
+| 事实检查一定正确吗？ | 不一定。它是分级提示，作者可以覆盖，系统不会静默改写正式剧情。 |
+| 3D 做到什么程度？ | 交付是可切换的 2.5D / 3D 舞台、程序化布景、角色行走、镜头预设和 WebGL 回退；电影级资产是后续方向。 |

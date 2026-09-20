@@ -52,7 +52,7 @@ export const api = {
   listArtifacts: (sceneId: string) => request<SceneArtifact[]>(`/scenes/${encodeURIComponent(sceneId)}/artifacts`),
   generateArtifact: (sceneId: string, payload: { kind: "backdrop" | "portrait" | "prop"; actor_id?: string; item_id?: string; prompt?: string; size?: string }) =>
     request<SceneArtifact>(`/scenes/${encodeURIComponent(sceneId)}/artifacts`, "POST", payload),
-  expandIdea: (premise: string) => request<{ premise: string; questions: string[]; scene_spec: SceneSpec }>("/ideas/expand", "POST", { premise }),
+  expandIdea: (premise: string) => request<{ premise: string; questions: string[]; scene_spec: SceneSpec; source?: "llm" | "rule"; fallback_reason?: string }>("/ideas/expand", "POST", { premise }),
   createScene: async (spec: SceneSpec) => normalizeRecord(await request<SceneRecord>("/scenes", "POST", spec)),
   getScene: async (id: string, branchId?: string) => normalizeRecord(await request<SceneRecord>(`/scenes/${encodeURIComponent(id)}${branchId ? `?branch_id=${encodeURIComponent(branchId)}` : ""}`)),
   patchScene: async (id: string, payload: Record<string, unknown>) => normalizeRecord(await request<SceneRecord>(`/scenes/${encodeURIComponent(id)}`, "PATCH", payload)),

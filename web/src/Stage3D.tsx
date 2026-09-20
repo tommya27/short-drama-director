@@ -25,10 +25,30 @@ function PortraitSprite({ url, position }: { url: string; position: Vec3 }) {
 type Props=WorldStageProps & {preset:string;showObservers:boolean;showLabels:boolean;onFailure:()=>void};
 function Box({position,size,color,rotation=0}:{position:Vec3;size:Vec3;color:string;rotation?:number}) {return <mesh position={position} rotation={[0,rotation,0]} castShadow receiveShadow><boxGeometry args={size}/><meshStandardMaterial color={color} roughness={.75}/></mesh>;}
 function Plant({position}:{position:Vec3}) {return <group position={position}><mesh position={[0,.3,0]} castShadow><cylinderGeometry args={[.3,.22,.6,8]}/><meshStandardMaterial color="#a66f51"/></mesh>{[0,1,2,3,4].map(i=><mesh key={i} position={[Math.sin(i*2)*.22,.85+i*.09,Math.cos(i*2)*.22]} rotation={[0,i,Math.sin(i)*.6]} castShadow><icosahedronGeometry args={[.4,0]}/><meshStandardMaterial color={i%2?'#627e5d':'#8ba572'}/></mesh>)}</group>;}
+function Rock({position,size=1,color="#8b8f86"}:{position:Vec3;size?:number;color?:string}) {return <mesh position={position} castShadow receiveShadow><dodecahedronGeometry args={[.5*size,0]}/><meshStandardMaterial color={color} roughness={.95}/></mesh>;}
+function Pine({position,scale=1,color="#4f6b52"}:{position:Vec3;scale?:number;color?:string}) {return <group position={position} scale={scale}><mesh position={[0,.5,0]} castShadow><cylinderGeometry args={[.09,.13,1,6]}/><meshStandardMaterial color="#6b5a44"/></mesh>{[0,1,2].map(i=><mesh key={i} position={[0,1+i*.42,0]} castShadow><coneGeometry args={[.62-i*.15,.66,8]}/><meshStandardMaterial color={color}/></mesh>)}</group>;}
+function Rail({position,length=6,rotation=0,color="#6f6a5f"}:{position:Vec3;length?:number;rotation?:number;color?:string}) {return <group position={position} rotation={[0,rotation,0]}>{[-length/2,-length/6,length/6,length/2].map(x=><Box key={x} position={[x,.5,0]} size={[.08,1,.08]} color={color}/>)}<Box position={[0,.98,0]} size={[length,.09,.1]} color={color}/><Box position={[0,.55,0]} size={[length,.06,.08]} color={color}/></group>;}
+function Console({position,color="#39474f",accent="#7fb0b8"}:{position:Vec3;color?:string;accent?:string}) {return <group position={position}><Box position={[0,.45,0]} size={[3.2,.9,1.1]} color={color}/><Box position={[0,.95,-.25]} size={[3.2,.1,.5]} color={accent}/><Box position={[0,1.05,-.32]} size={[1.2,.6,.06]} color="#2b3339"/>{[-1.1,-.55,.55,1.1].map(x=><Box key={x} position={[x,.95,.12]} size={[.22,.06,.16]} color={accent}/>)}</group>;}
+function Outdoor({layout}:{layout:StageLayout}) {
+ const accent=layout.accent, wood=layout.wood;
+ return <group>
+  <Rock position={[-4.6,0.2,-2.4]} size={1.7} color={layout.wall}/>
+  <Rock position={[4.4,0.15,-1.6]} size={1.3} color={layout.wall}/>
+  <Rock position={[2.2,0.12,3.4]} size={1.0} color={layout.wall}/>
+  <Pine position={[-5.6,0,-3.9]} scale={1.5} color={accent}/>
+  <Pine position={[5.4,0,-3.2]} scale={1.1} color={accent}/>
+  <Pine position={[-3.2,0,4.2]} scale={.9} color={accent}/>
+  <Rail position={[0,0,4.6]} length={11} color={wood}/>
+  {layout.assets.includes("console")&&<Console position={[0,0,-2.6]} color={layout.wood} accent={accent}/>}
+  {layout.assets.includes("pillars")&&[-3.4,3.4].map(x=><Box key={x} position={[x,1.6,-3.6]} size={[.5,3.2,.5]} color={layout.wall}/>)}
+ </group>;
+}
 function Room({layout}:{layout:StageLayout}) {
  const historic=layout.key==='inn'||layout.key==='mansion';
+ const outdoor=layout.assets.includes('outdoor');
  return <group>
-  <Box position={[0,-.18,0]} size={[10,.36,8]} color={layout.floor}/>
+  <Box position={[0,-.18,0]} size={outdoor?[19,.36,15]:[10,.36,8]} color={layout.floor}/>
+  <group visible={!outdoor}>
   <Box position={[0,1.7,-4]} size={[10,3.5,.14]} color={layout.wall}/>
   <Box position={[-5,1.3,0]} size={[.14,2.7,8]} color={layout.wall}/>
   <Box position={[0,.015,0]} size={[7,.035,5.5]} color={historic?'#998b73':'#c8cdc2'}/>
@@ -44,6 +64,8 @@ function Room({layout}:{layout:StageLayout}) {
   <Box position={[-4.45,1.35,.25]} size={[.94,.12,2.7]} color="#e6dfcf"/>
   {layout.key==='inn'&&[0,1,2].map(i=><mesh key={i} position={[-4.4,1.65,i*.65-.4]} castShadow><sphereGeometry args={[.21,8,8]}/><meshStandardMaterial color="#9c674a"/></mesh>)}
   </group>
+  </group>
+  {outdoor&&<Outdoor layout={layout}/>}
   {layout.zones.slice(1).map((zone,i)=><group key={zone} position={layout.anchors[zone]}><Box position={[0,-.12,0]} size={[3.4,.2,3]} color={layout.floor}/><Box position={[0,.025,0]} size={[3.1,.02,2.7]} color={i%2?'#aeb6b9':'#b8b29f'}/></group>)}
  </group>;
 }

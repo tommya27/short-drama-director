@@ -74,6 +74,26 @@
 两者都在事件里留下降级记录，**整轮成功返回**；预览后 `revision=0`，提交后 `revision=1`、正式事件 3；
 场次卡/剧本/分镜三种输出均 `200` 且各自带 3 个来源事件 ID。
 
+## 开场生成与场景样式（2026-09-20）
+
+- `backend/director_core/opening.py`：模型路径 + 规则回退；`_coerce_manifest` 做字段白名单
+  （palette/zones/asset_set/camera_presets/interaction_points，且 asset_set 只能取渲染器认识的词表）。
+  `backend/tests/test_opening.py` 8 条离线测试：模型路径、白名单过滤、坏结构丢弃、
+  模型抛错回退、模型结构不合法回退、无密钥走规则、`DIRECTOR_OPENING_MODE=rule` 强制规则且不调用模型。
+- 全量测试 `78 passed`；前端 `npm run build`（含 `tsc --noEmit`）通过。
+- 真实联调（live，两个题材）：
+  - 「华山之巅，两位旧友为同一把剑对峙，其中一人藏着当年山门失火的真相」
+    → 来源 `llm`，剧名《华山剑影》，区域 崖边/山巅平台/石阶入口，
+    `scene_key=mountain-top`，`asset_set=[outdoor,rock,pine,rail]`，palette 与 3 个 zone 坐标齐全。
+  - 「游轮驾驶舱，船长与二副在暴风雨前争夺航向决定权」
+    → 来源 `llm`，剧名《风暴航线》，区域 舵轮平台/海图桌区/通讯台，
+    `scene_key=ship`，`asset_set` 含 `console,rail`（驾驶台形态）。
+- 落库与出图：由华山开场建立场景 `scene_b45bd14c6b02`，`GET /scenes/{id}` 回读确认
+  manifest（palette/zones/asset_set）与世界区域一致；T1 背板真实生成 `1024x1024 / 341KB`，
+  提示词自动包含场景地点与设定。
+- 3D 舞台新增室外/载具形态：`asset_set` 含 `outdoor` 时渲染地面、岩石、松树、护栏与驾驶台，
+  室内元素（墙、会议桌、椅子、绿植、文件柜）自动隐藏；构建通过。
+
 ## 尚待人工/设备验证
 
 - 完整浏览器逐项操作、不同窗口尺寸与不同 GPU 的 3D 外观/性能检查，特别是 WebGL 丢失后的实机回退。本轮不以构建或 HTTP 成功冒充全部视觉验收。

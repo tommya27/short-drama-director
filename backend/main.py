@@ -8,8 +8,8 @@ from pydantic import BaseModel, Field
 
 from .director_core import images as image_assets
 from .director_core.engine import ConflictError, NotFoundError
+from .director_core.opening import expand
 from .director_core.runtime import build_store, load_env_file, runtime_info
-from .director_core.scene_input import expand
 
 # 运行模式：live（真实模型）或 offline（离线规则）。
 # 先读项目 .env，再按模式构建 store；模式信息通过 /api/v1/runtime 暴露给前端做徽标。

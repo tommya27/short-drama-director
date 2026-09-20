@@ -66,6 +66,33 @@ npm run build
 
 
 
+## 开场生成与场景样式（按输入自动适配）
+
+**一句话想法 → 可直接确认的完整设定**（`POST /api/v1/ideas/expand`）：
+
+- **模型路径**（live 且有密钥）：真实模型按严格 JSON 结构扩写——剧名、类型、主场地、3-4 个区域、
+  3-4 个角色（公开目标/隐藏目标/秘密/公开身份/外形/行为锚点）、道具、事实，
+  以及**舞台 manifest**（scene_key、名字、palette、zones 坐标、asset_set、相机预设、交互点）。
+- **规则路径**（离线/无密钥/模型输出不可用）：本地确定性模板，**永不联网**。
+- 返回值带 `source`（`llm` / `rule`）与可选 `fallback_reason`，**确认开场页会写明这份开场是谁生成的**，
+  不做静默替换；`DIRECTOR_OPENING_MODE=rule` 可强制只走规则路径。
+
+**场景样式随场景变化**，不需要为每个题材加代码：
+
+1. `scene_manifests/*.json` 提供 5 个内置舞台（董事会/办公室/客栈/古宅/通用）；
+2. **场景自带的 `scene_manifest` 会覆盖内置值**（前端 `layoutFor` 合并），所以开场生成时写进去的
+   palette / zones / asset_set / 相机 / 交互点会直接生效；
+3. `asset_set` 只允许从渲染器认识的词表里选：
+   `table · chairs · screen · cabinet · plants · outdoor · rock · pine · rail · console · pillars · bed`，
+   3D 舞台按此渲染；含 `outdoor` 时切换为室外/载具形态（地面、岩石、松树、护栏、驾驶台），
+   室内元素自动隐藏；
+4. 视觉身份由 T1 文生图补齐：背板提示词取自场景地点与环境设定，**同一个场景一个专属背板**。
+
+实测（live）：输入「华山之巅，两位旧友为同一把剑对峙…」→ 剧名《华山剑影》、区域
+崖边/山巅平台/石阶入口、`scene_key=mountain-top`、`asset_set=[outdoor,rock,pine,rail]`，
+背板 341KB；输入「游轮驾驶舱…」→ 《风暴航线》、舵轮平台/海图桌区/通讯台、
+`scene_key=ship`、`asset_set` 含 `console,rail`。
+
 ## 美术素材（T1：文生图）
 
 舞台的美术层由文生图产出，**作者在界面上按需触发**（舞台工具栏「生成美术素材」），不是自动生成：

@@ -27,7 +27,7 @@ function MapStage(props: WorldStageProps) {
  const backdrop = backdropOf(props);
  return <div className="world-map" role="img" aria-label={`${props.scene.location} 2.5D 状态地图`} style={backdrop ? {backgroundImage:`linear-gradient(#ffffffb8,#ffffffb8), url(${assetSrc(backdrop.url)})`, backgroundSize:'cover', backgroundPosition:'center'} : undefined}>
   {layout.zones.map(zone=><div className="map-zone" key={zone}><span>{zone}</span>
-   {Object.values(props.snapshot.actors).filter(a=>(a.location ?? layout.zones[0])===zone).map(a=><button key={a.id} className={`map-person ${props.selectedActor===a.id?'chosen':''}`} onClick={()=>props.onActorSelect(a.id)}>
+   {Object.values(props.snapshot.actors).filter(a=>(a.location ?? layout.zones[0])===zone).map(a=><button key={a.id} className={`map-person ${props.selectedActor===a.id?'chosen':''} ${(() => { const last = props.events.at(-1); return last?.target_id === a.id && last.actor_id !== a.id ? 'addressed' : ''; })()}`} onClick={()=>props.onActorSelect(a.id)}>
     {portraitOf(props,a.id) ? <img className="map-portrait" src={assetSrc(portraitOf(props,a.id)!.url)} alt={`${a.name} 立绘`} title={`立绘：${portraitOf(props,a.id)!.model} · ${portraitOf(props,a.id)!.created_at}`}/> : <i style={{background:a.color??layout.accent}}>●</i>}<b>{a.name}</b><small>{props.events.filter(e=>e.actor_id===a.id).at(-1)?.action??'尚未行动'}</small>
    </button>)}
   </div>)}

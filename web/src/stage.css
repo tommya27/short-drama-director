@@ -55,3 +55,8 @@
 .speech-bubble em.speech-action{color:#77857c;font-size:10px}
 .speech-bubble.chosen{border-color:#c79353;background:#fff7e4e0;box-shadow:0 8px 22px #a97a3a45}
 .speech-progress{align-self:flex-end;font-size:9px;color:#8d9a92;font-style:normal}
+
+/* 2.5D：正在被对话的对象高亮（与"我选中"区分开） */
+.map-person.addressed i { outline: 3px solid #6fb3bd; outline-offset: 4px; }
+.map-person.addressed { position: relative; }
+.map-person.addressed::after { content: "← 正在被对话"; position: absolute; top: -14px; font-size: 9px; color: #3f7f88; white-space: nowrap; }

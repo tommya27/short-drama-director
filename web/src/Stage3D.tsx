@@ -161,7 +161,7 @@ function Room({layout}:{layout:StageLayout}) {
   {layout.zones.slice(1).map((zone,i)=><group key={zone} position={layout.anchors[zone]}><Box position={[0,-.12,0]} size={[3.4,.2,3]} color={layout.floor}/><Box position={[0,.025,0]} size={[3.1,.02,2.7]} color={i%2?'#aeb6b9':'#b8b29f'}/></group>)}
  </group>;
 }
-function Avatar({id,color,position,target,selected,onSelect,onHover,motion}:{id:string;color:string;position:Vec3;target:Vec3;selected:boolean;onSelect:()=>void;onHover:(hovered:boolean)=>void;motion?:StageMotion}) {
+function Avatar({id,color,position,target,selected,addressed,onSelect,onHover,motion}:{id:string;color:string;position:Vec3;target:Vec3;selected:boolean;addressed?:boolean;onSelect:()=>void;onHover:(hovered:boolean)=>void;motion?:StageMotion}) {
  const group=useRef<Group>(null); const legs=useRef<Group>(null); const initialPosition=useRef(position); const destination=useMemo(()=>new Vector3(...position),[position[0],position[2]]);
  const path=useRef<Vector3[]>([]); const gait=useRef(0); const previousSeek=useRef(motion?.seek);
  useEffect(()=>{if(!group.current)return;const p=group.current.position;if(previousSeek.current!==motion?.seek){p.copy(destination);path.current=[];previousSeek.current=motion?.seek;}else path.current=walkingPath([p.x,p.y,p.z],position).map(point=>new Vector3(...point));},[destination,motion?.seek]);
@@ -170,6 +170,7 @@ function Avatar({id,color,position,target,selected,onSelect,onHover,motion}:{id:
  return <>
  <group name={`actor:${id}`} ref={group} position={initialPosition.current} onClick={e=>{e.stopPropagation();onSelect();}} onPointerOver={e=>{e.stopPropagation();onHover(true);}} onPointerOut={()=>onHover(false)}>
   <mesh rotation={[-Math.PI/2,0,0]} position={[0,.025,0]}><ringGeometry args={[.44,.49,40]}/><meshBasicMaterial color={selected?'#e1ab54':color} transparent opacity={selected?1:.5}/></mesh>
+  {addressed&&<mesh rotation={[-Math.PI/2,0,0]} position={[0,.03,0]}><ringGeometry args={[.62,.7,44]}/><meshBasicMaterial color="#6fb3bd" transparent opacity={.95}/></mesh>}
   <group ref={legs}>{[-.13,.13].map(x=><group key={x} position={[x,.46,0]}><Box position={[0,-.22,0]} size={[.17,.46,.2]} color="#303d48"/><Box position={[0,-.38,.06]} size={[.19,.12,.3]} color="#30363c"/></group>)}</group>
   <mesh position={[0,.7,0]} castShadow><capsuleGeometry args={[.23,.36,4,8]}/><meshStandardMaterial color={color}/></mesh>
   {[-.3,.3].map(x=><mesh key={x} position={[x,.65,.035]} rotation={[.05,0,x<0?-.12:.12]} castShadow><capsuleGeometry args={[.075,.31,4,6]}/><meshStandardMaterial color={color}/></mesh>)}
@@ -224,7 +225,7 @@ function SceneContent(props: Props) {
   <Room layout={layout}/>
   <ArtBoundary>{props.artifacts?.filter(item=>item.kind==='backdrop').slice(0,1).map(item=><Backdrop key={item.asset_id} url={assetSrc(item.url)}/>)}{(props.artifacts??[]).filter(item=>item.kind==='portrait'&&item.actor_id&&positions[String(item.actor_id)]).map(item=>{const anchor=positions[String(item.actor_id)];return <PortraitSprite key={item.asset_id} url={assetSrc(item.url)} position={[anchor[0],2.35,anchor[2]]}/>;})}</ArtBoundary>
   {layout.points.map(point=><group key={point.id} position={point.position}><mesh rotation={[-Math.PI/2,0,0]}><ringGeometry args={[.18,.22,24]}/><meshBasicMaterial color={layout.accent} transparent opacity={.5}/></mesh></group>)}
-  {actors.map((actor,index)=>{const event=props.events.filter(e=>e.actor_id===actor.id).at(-1); return <Avatar key={actor.id} id={actor.id} color={colorFor(index)} position={positions[actor.id]} target={positions[String(event?.target_id)]??[0,0,0]} selected={props.selectedActor===actor.id} motion={props.motion} onSelect={()=>props.onActorSelect(actor.id)} onHover={value=>setHovered(value?`actor:${actor.id}`:null)}/>;})}
+  {actors.map((actor,index)=>{const event=props.events.filter(e=>e.actor_id===actor.id).at(-1); return <Avatar key={actor.id} id={actor.id} color={colorFor(index)} position={positions[actor.id]} target={positions[String(event?.target_id)]??[0,0,0]} selected={props.selectedActor===actor.id} addressed={!!lastEvent?.target_id&&String(lastEvent.target_id)===actor.id} motion={props.motion} onSelect={()=>props.onActorSelect(actor.id)} onHover={value=>setHovered(value?`actor:${actor.id}`:null)}/>;})}
   {(() => {
    if (props.showBubbles === false) return null;   // 导演可一键关闭气泡
    // 同一时刻只显示一个说话气泡，彻底避免多人气泡互相遮挡

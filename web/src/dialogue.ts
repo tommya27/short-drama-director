@@ -8,10 +8,10 @@
  * - 视觉小说的既有做法是「自动前进 + 每字速度」可调（Ren'Py preferences / 社区讨论）。
  *
  * 这里的数值是**可配置的工程默认值**，不是对上述标准的合规声明：
- * 我们按「每段 ≤ 14 字、约 6 字/秒」折算时长，并夹在 1.2–4 秒之间。
+ * 我们按「每段 ≤ 12 字、约 6 字/秒」折算时长，并夹在 1.2–4 秒之间。
  */
 export const DIALOGUE_DEFAULTS = {
-  maxChars: 14,        // 每段最多字数（对齐中文单行字幕的常见上限）
+  maxChars: 12,        // 每段最多字数（比中文单行字幕上限更保守，避免气泡过长）
   minChars: 4,         // 过短的标点碎片并入相邻段
   charsPerSecond: 6,   // 中文阅读速度折算：约 6 字/秒
   minDurationMs: 1200, // 单段最短显示时长
@@ -36,22 +36,31 @@ export function splitSentences(text: string): string[] {
   return merged;
 }
 
-/** 把句子按上限切段：优先在标点处断开，标点孤立时退化为定长切分。 */
+/** 把句子按上限切段：优先在标点处断开；过短碎片回收合并，避免出现「字，」这种两字一段。 */
 export function splitDialogue(text: string, options: Partial<typeof DIALOGUE_DEFAULTS> = {}): string[] {
   const config = { ...DIALOGUE_DEFAULTS, ...options };
-  const chunks: string[] = [];
+  const raw: string[] = [];
   for (const sentence of splitSentences(text)) {
     let rest = sentence;
     while (rest.length > config.maxChars) {
       const window = rest.slice(0, config.maxChars + 4);
       const cut = Math.max(window.lastIndexOf("，"), window.lastIndexOf("、"), window.lastIndexOf("；"));
       const index = cut >= config.minChars ? cut + 1 : config.maxChars;
-      chunks.push(rest.slice(0, index).trim());
+      raw.push(rest.slice(0, index).trim());
       rest = rest.slice(index).trim();
     }
-    if (rest) chunks.push(rest);
+    if (rest) raw.push(rest);
   }
-  return chunks.filter(Boolean);
+  const merged: string[] = [];
+  for (const chunk of raw.filter(Boolean)) {
+    if (merged.length && chunk.length < config.minChars) merged[merged.length - 1] += chunk;
+    else merged.push(chunk);
+  }
+  if (merged.length > 1 && merged[0].length < config.minChars) {
+    merged[1] = merged[0] + merged[1];
+    merged.shift();
+  }
+  return merged;
 }
 
 /** 单段显示时长：按字数折算，并夹在最短/最长之间。 */

@@ -3,7 +3,15 @@
 
 /* Keep event text inside the viewport, clear of the characters above it. */
 .world-canvas { isolation: isolate; }
-.stage-event-caption { position: absolute; z-index: 70; bottom: 16px; left: 50%; transform: translateX(-50%); width: min(480px, calc(100% - 32px)); max-height: 30%; overflow-y: auto; overscroll-behavior: contain; padding: 12px 16px; border: 1px solid #ffffffc9; border-radius: 10px; background: #fffff5f2; color: #35433e; box-shadow: 0 4px 18px #34413618; }
+.stage-event-caption { position: absolute; z-index: 70; overflow: hidden; padding: 10px 14px; border: 1px solid #ffffffc9; border-radius: 10px; background: #fffff5f2; color: #35433e; box-shadow: 0 4px 18px #34413618; }
+.stage-event-caption.docked { bottom: 16px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 32px); max-height: 30%; resize: both; min-width: 240px; min-height: 60px; }
+.stage-event-caption.docked .stage-event-caption-heading { cursor: default; }
+/* 可拖动/可缩放的浮窗：右下角出现缩放把手，尺寸与位置由用户决定 */
+.stage-event-caption.floating { resize: both; min-width: 220px; min-height: 64px; max-width: calc(100% - 12px); max-height: calc(100% - 12px); }
+.stage-event-caption.floating .stage-event-caption-heading { cursor: move; touch-action: none; }
+.stage-event-caption.docked .stage-event-caption-heading { cursor: default; }
+.caption-grip { color: #9fb0a6; letter-spacing: -2px; font-size: 12px; user-select: none; }
+.stage-event-caption p { max-height: calc(100% - 26px); overflow: auto; }
 .stage-event-caption-heading { display: flex; align-items: center; gap: 10px; font-size: 11px; }
 .stage-event-caption-heading span { color: #687e6d; }
 .stage-event-caption-heading b { font-weight: 600; }

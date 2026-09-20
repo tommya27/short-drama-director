@@ -1,4 +1,4 @@
-import { Component, Suspense, lazy, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Component, Suspense, lazy, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { WorldStageProps } from './types';
 import { actorPositions, layoutFor } from './stage-manifest';
 import { assetSrc } from './api';
@@ -35,6 +35,64 @@ function MapStage(props: WorldStageProps) {
   <span className="stage-footnote">{Object.keys(positions).length} 位角色 · 点击查看其所见与目标</span>
  </div>;
 }
+/** 可拖动、可缩放的对白窗：位置与尺寸写入 localStorage，带重置。 */
+type CaptionBox = { x: number; y: number; w: number; h: number };
+const CAPTION_KEY = 'director-caption-box';
+const CAPTION_DEFAULT: CaptionBox = { x: -1, y: -1, w: 430, h: 0 };
+
+function FloatingCaption({ label, name, text, expanded, onToggle }: { label: string; name: string; text: string; expanded: boolean; onToggle: () => void }) {
+ const ref = useRef<HTMLElement>(null);
+ const boxRef = useRef<CaptionBox>(CAPTION_DEFAULT);
+ const [box, setBox] = useState<CaptionBox>(() => {
+  try { return { ...CAPTION_DEFAULT, ...JSON.parse(localStorage.getItem(CAPTION_KEY) ?? '{}') } as CaptionBox; }
+  catch { return CAPTION_DEFAULT; }
+ });
+ boxRef.current = box;
+ const save = (next: CaptionBox) => { setBox(next); try { localStorage.setItem(CAPTION_KEY, JSON.stringify(next)); } catch { /* 隐私模式忽略 */ } };
+ const onPointerDown = (event: React.PointerEvent) => {
+  if ((event.target as HTMLElement).closest('button')) return;
+  const section = ref.current; const host = section?.parentElement;
+  if (!section || !host) return;
+  const rect = section.getBoundingClientRect();
+  const grabX = event.clientX - rect.left; const grabY = event.clientY - rect.top;
+  const move = (moveEvent: PointerEvent) => {
+   const element = ref.current; const bounds = element?.parentElement?.getBoundingClientRect();
+   if (!element || !bounds) return;
+   const maxX = Math.max(4, bounds.width - element.offsetWidth - 4);
+   const maxY = Math.max(4, bounds.height - element.offsetHeight - 4);
+   save({
+    ...boxRef.current,
+    x: Math.round(Math.min(Math.max(4, moveEvent.clientX - bounds.left - grabX), maxX)),
+    y: Math.round(Math.min(Math.max(4, moveEvent.clientY - bounds.top - grabY), maxY)),
+   });
+  };
+  const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+  event.preventDefault();
+ };
+ useEffect(() => {
+  const element = ref.current; if (!element) return;
+  const observer = new ResizeObserver(() => {
+   const w = Math.round(element.offsetWidth); const h = Math.round(element.offsetHeight);
+   if (w !== boxRef.current.w || h !== boxRef.current.h) save({ ...boxRef.current, w, h });
+  });
+  observer.observe(element);
+  return () => observer.disconnect();
+ }, []);
+ const docked = box.x < 0 || box.y < 0;
+ const style = docked ? { width: box.w, height: box.h > 0 ? box.h : undefined } : { left: box.x, top: box.y, width: box.w, height: box.h > 0 ? box.h : undefined };
+ return <section ref={ref} className={`stage-event-caption ${docked ? 'docked' : 'floating'} ${expanded ? 'expanded' : ''}`} style={style} aria-label="当前角色事件">
+  <div className="stage-event-caption-heading" onPointerDown={onPointerDown} title="按住这里拖动窗口；右下角可缩放">
+   <span className="caption-grip" aria-hidden="true">⣿</span>
+   <span>{label}</span><b>{name}</b>
+   <button onClick={onToggle} aria-expanded={expanded}>{expanded ? '收起' : '展开'}</button>
+   {!docked && <button onClick={() => save(CAPTION_DEFAULT)} title="恢复到底部居中">重置</button>}
+  </div>
+  <p>{text}</p>
+ </section>;
+}
+
 export function WorldStage(props: WorldStageProps) {
  const [mode,setMode]=useState<'3d'|'map'>('3d');
  const [preset,setPreset]=useState('wide');
@@ -55,7 +113,7 @@ export function WorldStage(props: WorldStageProps) {
   </div>
   <div className="world-canvas">
   {mode==='map'||layout.renderer==='map'||layout.renderer==='2.5d'?<MapStage {...props}/>:failed?fallback:<StageBoundary fallback={fallback}><Suspense fallback={<div className="stage-loading">正在搭建 3D 舞台…</div>}><Stage3D {...props} preset={preset} showObservers={showObservers} showLabels={showLabels} onFailure={()=>setFailed(true)}/></Suspense></StageBoundary>}
-  {showing3D&&selectedEvent&&<section className={`stage-event-caption ${captionExpanded?'expanded':''}`} aria-label="当前角色事件"><div className="stage-event-caption-heading"><span>{selectedEvent.committed_change?'已确认事件':'候选动作'}</span><b>{selectedName}</b><button aria-expanded={captionExpanded} aria-controls="stage-caption-text" onClick={()=>setCaptionExpanded(!captionExpanded)}>{captionExpanded?'收起':'展开'}</button></div><p id="stage-caption-text">{selectedEvent.dialogue||selectedEvent.action}</p></section>}
+  {showing3D&&selectedEvent&&<FloatingCaption label={selectedEvent.committed_change?'已确认事件':'候选动作'} name={selectedName??''} text={selectedEvent.dialogue||selectedEvent.action} expanded={captionExpanded} onToggle={()=>setCaptionExpanded(!captionExpanded)}/>}
   </div>
   {props.artifacts?.length ? <div className="stage-artifacts" aria-label="美术素材与来源">{props.artifacts.map(item=><figure key={item.asset_id} title={`${item.label}｜提示词：${item.prompt}\n模型：${item.model}\n生成时间：${item.created_at}`}><img src={assetSrc(item.url)} alt={item.label}/><figcaption>{item.label}</figcaption></figure>)}</div> : null}
   <div className="world-stage-note"><span>拖动旋转 · 滚轮缩放 · 点击角色</span><span>{props.artifacts?.length?`美术素材 ${props.artifacts.length} 件 · 文生图（悬停可看提示词与模型）`:'尚未生成美术素材'}</span><span>候选动作仅供试演，确认后才写入剧情</span></div>

@@ -2,15 +2,17 @@ import type { SceneSpec, WorldSnapshot } from './types';
 export type Vec3 = [number, number, number];
 export type CameraPreset = { id: string; label: string; position?: Vec3; target?: Vec3 };
 export type InteractionPoint = { id: string; label: string; position: Vec3; item_id?: string };
-export type StageForm = "interior" | "outdoor" | "vehicle" | "street";
+export type StageForm = "interior" | "outdoor" | "vehicle" | "street" | "cave";
 export type StageLayout = { key: string; name: string; floor: string; wall: string; wood: string; accent: string; zones: string[]; anchors: Record<string, Vec3>; cameras: CameraPreset[]; assets: string[]; renderer: string; characterColors: string[]; points: InteractionPoint[]; form: StageForm };
 /** 形态判定：显式 asset 标记优先，其次按场景类型关键词兜底（模型只给 scene_key 时也能换形态）。 */
 const formPatterns: Array<[StageForm, RegExp]> = [
+ ["cave", /矿|矿井|矿洞|洞窟|洞穴|地道|隧道|地窖|墓道|窑|坑道|cave|mine|tunnel|shaft|cellar|catacomb/],
  ["vehicle", /subway|metro|train|tram|car|bus|plane|aircraft|cockpit|bridge|ship|boat|ferry|yacht|cabin|车厢|地铁|高铁|列车|船|机舱|驾驶/],
  ["street", /street|plaza|square|pier|dock|market|alley|街头|广场|码头|集市|巷/],
  ["outdoor", /mountain|peak|forest|wood|beach|sea|ocean|park|desert|field|garden|camp|cliff|山|峰|林|海|滩|野|草原|营地|崖/],
 ];
 export function stageForm(key: string, name: string, assets: string[]): StageForm {
+ if (assets.includes("cave")) return "cave";
  if (assets.includes("outdoor") && !assets.includes("vehicle")) return "outdoor";
  if (assets.includes("vehicle")) return "vehicle";
  if (assets.includes("street")) return "street";

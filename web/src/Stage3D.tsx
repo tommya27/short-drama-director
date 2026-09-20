@@ -63,6 +63,14 @@ function Outdoor({layout}:{layout:StageLayout}) {
   {layout.assets.includes("pillars")&&[-3.4,3.4].map(x=><Box key={x} position={[x,1.6,-3.6]} size={[.5,3.2,.5]} color={layout.wall}/>)}
  </group>;
 }
+function Sofa({position,rotation=0,color="#6d7a72",accent="#98a49b"}:{position:Vec3;rotation?:number;color?:string;accent?:string}) {return <group position={position} rotation={[0,rotation,0]}><Box position={[0,.35,0]} size={[2.2,.4,.9]} color={color}/><Box position={[0,.7,-.36]} size={[2.2,.6,.18]} color={accent}/>{[-1.02,1.02].map(x=><Box key={x} position={[x,.5,0]} size={[.16,.44,.9]} color={accent}/>)}<Box position={[0,.62,.34]} size={[2.2,.16,.18]} color={accent}/></group>;}
+function Shelf({position,rotation=0,color="#7a6a55",accent="#c8bda6"}:{position:Vec3;rotation?:number;color?:string;accent?:string}) {return <group position={position} rotation={[0,rotation,0]}>{[0,1,2].map(i=><Box key={i} position={[0,.5+i*.7,0]} size={[1.8,.06,.5]} color={accent}/>)}<Box position={[-.88,1.1,0]} size={[.08,2.2,.5]} color={color}/><Box position={[.88,1.1,0]} size={[.08,2.2,.5]} color={color}/><Box position={[0,2.2,0]} size={[1.84,.08,.52]} color={color}/>{[.7,1.4].map((y,i)=><Box key={i} position={[i?.5:-.5,y+.2,0]} size={[.5,.3,.36]} color={i?"#9d8f78":"#8a9d92"}/>)}</group>;}
+function Crate({position,rotation=0,size=1,color="#8a7048"}:{position:Vec3;rotation?:number;size?:number;color?:string}) {const s=size;return <group position={position} rotation={[0,rotation,0]}><Box position={[0,.45*s,0]} size={[1*s,.9*s,1*s]} color={color}/>{[-.36,.36].map(x=><Box key={x} position={[x*s,.45*s,.51*s]} size={[.1*s,.9*s,.04]} color="#6d5738"/>)}</group>;}
+function Barrel({position,color="#5f6b62",accent="#8e6f42"}:{position:Vec3;color?:string;accent?:string}) {return <group position={position}><mesh position={[0,.5,0]} castShadow><cylinderGeometry args={[.38,.38,1,12]}/><meshStandardMaterial color={color} roughness={.8}/></mesh>{[.3,.7].map(y=><mesh key={y} position={[0,y,0]}><torusGeometry args={[.39,.035,8,16]}/><meshStandardMaterial color={accent}/></mesh>)}</group>;}
+function Gate({position,rotation=0,width=4,color="#59616a"}:{position:Vec3;rotation?:number;width?:number;color?:string}) {const bars=[];for(let x=-width/2+.3;x<width/2;x+=.42)bars.push(x);return <group position={position} rotation={[0,rotation,0]}>{bars.map(x=><Box key={x} position={[x,1.2,0]} size={[.07,2.4,.07]} color={color}/>)}<Box position={[0,2.3,0]} size={[width,.1,.1]} color={color}/><Box position={[0,.35,0]} size={[width,.1,.1]} color={color}/>{[-width/2,width/2].map(x=><Box key={x} position={[x,1.25,0]} size={[.16,2.5,.16]} color="#454c53"/>)}</group>;}
+function Door({position,rotation=0,color="#6b5a44",accent="#c9c2b0"}:{position:Vec3;rotation?:number;color?:string;accent?:string}) {return <group position={position} rotation={[0,rotation,0]}><Box position={[0,1.05,0]} size={[1.1,2.1,.1]} color={color}/><Box position={[0,1.05,-.05]} size={[.9,1.9,.06]} color={accent}/><mesh position={[.38,1,0]}><sphereGeometry args={[.06,8,8]}/><meshStandardMaterial color="#b9a15f" metalness={.6} roughness={.4}/></mesh></group>;}
+function Car({position,rotation=0,color="#3f5566",glass="#8fb2c0"}:{position:Vec3;rotation?:number;color?:string;glass?:string}) {return <group position={position} rotation={[0,rotation,0]}><Box position={[0,.6,0]} size={[1.9,.55,4.2]} color={color}/><Box position={[0,1.05,-.15]} size={[1.7,.5,2.1]} color={glass}/>{[[-.95,1.4],[.95,1.4],[-.95,-1.4],[.95,-1.4]].map(([x,z],i)=><mesh key={i} position={[x,.28,z]} rotation={[0,0,Math.PI/2]}><cylinderGeometry args={[.28,.28,.16,12]}/><meshStandardMaterial color="#2b2f33"/></mesh>)}<Box position={[0,.42,2.12]} size={[1.5,.16,.1]} color="#e8e3cf"/><Box position={[0,.42,-2.12]} size={[1.5,.16,.1]} color="#8c3b3b"/></group>;}
+function Podium({position,rotation=0,color="#6b5a44",accent="#d8cdb6"}:{position:Vec3;rotation?:number;color?:string;accent?:string}) {return <group position={position} rotation={[0,rotation,0]}><Box position={[0,.6,0]} size={[1,.08,.6]} color={accent}/><Box position={[0,.3,0]} size={[.7,.6,.45]} color={color}/><Box position={[-.2,1.0,0]} size={[.05,.7,.05]} color="#4a4f52"/><mesh position={[-.2,1.35,0]}><sphereGeometry args={[.09,8,8]}/><meshStandardMaterial color="#3d4245"/></mesh></group>;}
 function Bench({position,rotation=0,length=3.4,color="#4d5a63",accent="#8fb0b6"}:{position:Vec3;rotation?:number;length?:number;color?:string;accent?:string}) {return <group position={position} rotation={[0,rotation,0]}><Box position={[0,.45,0]} size={[length,.14,.5]} color={color}/><Box position={[0,.72,-.22]} size={[length,.5,.1]} color={accent}/>{[-length/2+.25,length/2-.25].map(x=><Box key={x} position={[x,.22,0]} size={[.12,.44,.42]} color={color}/>)}</group>;}
 function Pole({positions,color="#c9ced0"}:{positions:Vec3[];color?:string}) {return <>{positions.map((p,i)=><group key={i} position={p}><mesh position={[0,1.15,0]} castShadow><cylinderGeometry args={[.05,.05,2.3,8]}/><meshStandardMaterial color={color} metalness={.5} roughness={.4}/></mesh><mesh position={[0,2.3,0]}><sphereGeometry args={[.07,8,8]}/><meshStandardMaterial color={color}/></mesh></group>)}</>;}
 function Counter({position,rotation=0,length=4.2,color="#6b5a44",accent="#d8cdb6"}:{position:Vec3;rotation?:number;length?:number;color?:string;accent?:string}) {return <group position={position} rotation={[0,rotation,0]}><Box position={[0,.55,0]} size={[length,1.1,.7]} color={color}/><Box position={[0,1.13,0]} size={[length+.2,.08,.86]} color={accent}/>{[-length/3,0,length/3].map(x=><Box key={x} position={[x,1.32,0]} size={[.16,.3,.16]} color={accent}/>)}</group>;}
@@ -79,6 +87,28 @@ function VehicleInterior({layout}:{layout:StageLayout}) {
   <group visible={layout.assets.includes("pole")}><Pole positions={[[-1.3,0,.2],[0,0,-.2],[1.3,0,.2],[-2.2,0,-.2],[2.2,0,-.2]]}/></group>
   {layout.assets.includes("console")&&<Console position={[0,0,-1.9]} color={color} accent={accent}/>}
   <group visible={layout.assets.includes("table")}><Box position={[0,.6,0]} size={[2.6,.1,1.4]} color={layout.wood}/><Box position={[0,.3,0]} size={[.2,.6,1.1]} color="#4c5459"/></group>
+ </group>;
+}
+function Timber({position,rotation=0,height=2.2,width=1.9,color="#6b5238"}:{position:Vec3;rotation?:number;height?:number;width?:number;color?:string}) {return <group position={position} rotation={[0,rotation,0]}><Box position={[-width/2,height/2,0]} size={[.18,height,.18]} color={color}/><Box position={[width/2,height/2,0]} size={[.18,height,.18]} color={color}/><Box position={[0,height,0]} size={[width+.34,.2,.22]} color={color}/>{[-width/4,width/4].map(x=><Box key={x} position={[x,height*.55,0]} size={[.1,height*.7,.1]} color="#5b462f"/>)}</group>;}
+function Track({position,length=12,rotation=0,color="#5d5347"}:{position:Vec3;length?:number;rotation?:number;color?:string}) {const sleepers=[];for(let x=-length/2;x<=length/2;x+=.8)sleepers.push(x);return <group position={position} rotation={[0,rotation,0]}>{[-.34,.34].map(x=><Box key={x} position={[x,.06,0]} size={[.09,.09,length]} color={color}/>)}{sleepers.map(x=><Box key={x} position={[0,.02,x]} size={[.9,.06,.16]} color="#6f6353"/>)}</group>;}
+function MineCart({position,color="#4e5a60",ore="#8d7f6a"}:{position:Vec3;color?:string;ore?:string}) {return <group position={position}><Box position={[0,.62,0]} size={[1.3,.8,1.02]} color={color}/><Box position={[0,1.0,0]} size={[1.42,.08,1.14]} color="#5c686e"/>{[[-.42,-.3],[.42,-.3],[-.42,.3],[.42,.3]].map(([x,z],i)=><mesh key={i} position={[x,.24,z]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.22,.22,.1,12]}/><meshStandardMaterial color="#3a4247" metalness={.4} roughness={.6}/></mesh>)}<mesh position={[0,.92,0]} castShadow><dodecahedronGeometry args={[.3,0]}/><meshStandardMaterial color={ore} roughness={1}/></mesh></group>;}
+function Lantern({position,light="#ffd88a"}:{position:Vec3;light?:string}) {return <group position={position}><mesh position={[0,.9,0]} castShadow><cylinderGeometry args={[.12,.12,.28,10]}/><meshStandardMaterial color="#54463a"/></mesh><mesh position={[0,.9,0]}><sphereGeometry args={[.14,10,10]}/><meshStandardMaterial color={light} emissive={light} emissiveIntensity={1.4}/></mesh><pointLight position={[0,.9,0]} intensity={6} distance={8} color={light}/><Box position={[0,2.05,0]} size={[.06,.5,.06]} color="#4a3f33"/></group>;}
+function CaveInterior({layout}:{layout:StageLayout}) {
+ const rock=layout.wall, ground=layout.floor, timber=layout.wood, accent=layout.accent;
+ const dark="#3b3833";
+ return <group>
+  <Box position={[0,-.1,0]} size={[14,.3,13]} color={ground}/>
+  <Box position={[0,2.9,0]} size={[14,.4,13]} color={dark}/>
+  {[-7,7].map(x=><group key={`side${x}`}>{[-5,-2,1,4].map(z=><Rock key={z} position={[x,.45,z]} size={2.4} color={rock}/>)}</group>)}
+  {[-4,0,4].map(x=><Rock key={`back${x}`} position={[x,.5,-6.4]} size={2.6} color={rock}/>)}
+  {[-3,3].map(x=><Rock key={`front${x}`} position={[x,.4,6.4]} size={2.2} color={rock}/>)}
+  {layout.assets.includes("tunnel")&&<group>{[-3.2,3.2].map(x=><Timber key={x} position={[x,0,-3.4]} height={2.6} width={2.2} color={timber}/>)}{[-1.6,1.6].map(x=><Rock key={x} position={[x,1.9,-4.2]} size={1.6} color={rock}/>)}</group>}
+  {layout.assets.includes("timber")&&!layout.assets.includes("tunnel")&&<Timber position={[0,0,-2.6]} height={2.4} width={2.6} color={timber}/>}
+  {layout.assets.includes("track")&&<Track position={[0,0,0]} length={13} color={accent}/>}
+  {layout.assets.includes("minecart")&&<MineCart position={[-1.9,0,1.4]} color={timber} ore={rock}/>}
+  {layout.assets.includes("lantern")&&<Lantern position={[2.6,0,-3.0]}/>}
+  {!layout.assets.includes("lantern")&&<Lantern position={[2.4,0,-3.0]}/>}
+  {layout.assets.includes("debris")&&[[-3.4,.15,2.2],[3.6,.12,1.6],[.8,.1,4.2]].map((p,i)=><Rock key={i} position={p as Vec3} size={.8} color={rock}/>)}
  </group>;
 }
 function StreetScene({layout}:{layout:StageLayout}) {
@@ -116,9 +146,18 @@ function Room({layout}:{layout:StageLayout}) {
   {outdoor&&<Outdoor layout={layout}/>}
   {form==='vehicle'&&<VehicleInterior layout={layout}/>}
   {form==='street'&&<StreetScene layout={layout}/>}
+  {form==='cave'&&<CaveInterior layout={layout}/>}
   {layout.assets.includes("counter")&&form!=='outdoor'&&<Counter position={[0,0,-2.6]} color={layout.wood} accent={layout.accent}/>}
   {layout.assets.includes("desk")&&form==='interior'&&<Desk positions={[[-3,0,-1],[0,0,-1],[3,0,-1]]} color={layout.wood} accent={layout.accent}/>}
   {layout.assets.includes("bed")&&form==='interior'&&<Bed position={[-3.4,0,1.6]} color="#e6e9e6" accent={layout.accent}/>}
+  {layout.assets.includes("sofa")&&<Sofa position={[3.6,0,1.2]} rotation={-Math.PI/2} color={layout.accent} accent={layout.wood}/>}
+  {layout.assets.includes("shelf")&&<Shelf position={[-4.2,0,-1.6]} rotation={Math.PI/2} color={layout.wood} accent="#c8bda6"/>}
+  {layout.assets.includes("crate")&&<><Crate position={[3.9,0,-2.4]}/><Crate position={[3.2,0,-2.9]} size={.7} rotation={.5}/></>}
+  {layout.assets.includes("barrel")&&<Barrel position={[-3.9,0,2.6]} color={layout.wood}/>}
+  {layout.assets.includes("gate")&&<Gate position={[0,0,form==='interior'?-4.6:5.4]} rotation={form==='interior'?0:Math.PI} width={4.4} color={layout.wall}/>}
+  {layout.assets.includes("door")&&form==='interior'&&<Door position={[4.2,0,-3.9]} color={layout.wood}/>}
+  {layout.assets.includes("car")&&<Car position={[4.6,0,3.2]} rotation={Math.PI*.75} color={layout.accent}/>}
+  {layout.assets.includes("podium")&&<Podium position={[0,0,2.4]} rotation={Math.PI} color={layout.wood} accent={layout.accent}/>}
   {layout.zones.slice(1).map((zone,i)=><group key={zone} position={layout.anchors[zone]}><Box position={[0,-.12,0]} size={[3.4,.2,3]} color={layout.floor}/><Box position={[0,.025,0]} size={[3.1,.02,2.7]} color={i%2?'#aeb6b9':'#b8b29f'}/></group>)}
  </group>;
 }

@@ -82,15 +82,19 @@ npm run build
 1. `scene_manifests/*.json` 提供 5 个内置舞台（董事会/办公室/客栈/古宅/通用）；
 2. **场景自带的 `scene_manifest` 会覆盖内置值**（前端 `layoutFor` 合并），所以开场生成时写进去的
    palette / zones / asset_set / 相机 / 交互点会直接生效；
-3. `asset_set` 只允许从渲染器认识的词表里选：
-   `table · chairs · screen · cabinet · plants · bench · pole · counter · desk · bed ·
-   outdoor · street · vehicle · rock · pine · rail · console · pillars · lamp · window_strip`；
-4. **舞台按形态渲染**（`stageForm()`：显式 asset 标记优先，其次按 scene_key/场景名关键词兜底）：
-   - `interior` 室内：墙、会议桌、椅子、屏幕、绿植、文件柜；带 `counter`/`desk`/`bed` 时补吧台/课桌/病床；
+3. `asset_set` 只允许从渲染器认识的**零件库**里选（相当于一套可拼装的景片）：
+   - 通用：`table · chairs · screen · cabinet · plants · bench · pole · counter · desk · bed ·
+     sofa · shelf · crate · barrel · gate · door · car · podium`
+   - 形态标记：`outdoor · street · vehicle · cave`
+   - 自然与工业：`rock · pine · rail · pillars · lamp · window_strip ·
+     timber · track · minecart · lantern · tunnel · debris`
+4. **舞台按形态渲染**（`stageForm()`：显式形态标记优先，其次按 scene_key/场景名关键词兜底，中英文都认）：
+   - `interior` 室内：墙、地板、门、窗；家具按 asset 出现（会议桌/椅/屏幕/柜台/课桌/病床/沙发/货架/讲台…）；
    - `outdoor` 室外：地面、岩石、松树、护栏；
    - `vehicle` 载具：车厢顶、车窗带、长椅、立柱、驾驶台（地铁/火车/船/机舱）；
-   - `street` 街景：路面、路灯、护栏、立柱。
-   非室内形态会自动隐藏室内元素；
+   - `street` 街景：路面、路灯、护栏、立柱、停车；
+   - `cave` 矿洞/地道：岩壁、隧道拱、木支撑、铁轨、矿车、矿灯、碎石。
+   非该形态的零件不会出现（例如矿洞里不会长出松树、也不会摆会议桌）；
 5. 视觉身份由 T1 文生图补齐：背板提示词取自场景地点与环境设定，**同一个场景一个专属背板**；
 6. **3D 里能看见角色交流**：每个有台词的角色头顶显示说话气泡（选中角色高亮），
    并用虚线指向该动作的对话对象；气泡内容来自真实事件，不是预制动画。

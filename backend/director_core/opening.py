@@ -20,8 +20,10 @@ from .scene_input import portable_spec, public_spec
 #: 3D/2.5D 舞台能直接渲染的道具名（模型只能从这个词表里选，避免生成渲染不了的资产）
 ASSET_VOCABULARY = ("table", "chairs", "screen", "cabinet", "plants",
                     "bench", "pole", "counter", "desk", "bed",
-                    "outdoor", "street", "vehicle", "rock", "pine", "rail", "console",
-                    "pillars", "lamp", "window_strip")
+                    "outdoor", "street", "vehicle", "cave", "rock", "pine", "rail", "console",
+                    "pillars", "lamp", "window_strip",
+                    "timber", "track", "minecart", "lantern", "tunnel", "debris",
+                    "sofa", "shelf", "crate", "barrel", "gate", "door", "car", "podium")
 
 OPENING_SYSTEM = f"""你是短剧的前期策划，把作者的一句话想法扩写成可以直接开演的设定。
 只能输出 JSON 对象，不要解释。字段：
@@ -58,12 +60,19 @@ OPENING_SYSTEM = f"""你是短剧的前期策划，把作者的一句话想法�
 2. locations 与 zones 的区域名必须一致；zone 坐标 x∈[-6,6]、z∈[-5,5]，彼此不要重叠。
 3. 按场景选形态标记，必须放进 asset_set：
    - 户外自然（山、林、海、街外）："outdoor"；配 rock / pine / rail。
+   - 矿洞/地道/隧道/地窖/墓道/洞穴：**必须用 "cave"**；配 timber / track / minecart / lantern / tunnel / debris / rock。
+     这类场景**禁止**出现 pine 或会议桌——矿洞里不能有松树和办公家具。
    - 交通载具（地铁、火车、船、车、飞机、驾驶舱）："vehicle"；配 bench / pole / console / rail / window_strip。
    - 街头广场（城市街道、广场、码头）："street"；配 lamp / pillars / rail。
    - 咖啡/餐厅/酒吧：配 counter / table / chairs / lamp。
    - 医院/诊所：配 bed / cabinet；教室/学校：配 desk / chairs / screen。
-   - 会议室/办公室：配 table / chairs / screen / cabinet / plants。
-   同一个 asset_set 里不要同时出现 outdoor 和 vehicle；不要给地铁、车厢这类场景配会议桌。
+   - 会议室/办公室：配 table / chairs / screen / cabinet / plants / door。
+   - 家里/公寓/客厅：配 sofa / table / cabinet / door / plants。
+   - 仓库/工地/厂房/停车场：配 crate / barrel / gate / timber / rail / car。
+   - 店铺/超市/药房：配 shelf / counter / door。
+   - 发布会/法庭/礼堂/教室：配 podium / chairs / desk / screen / pillars。
+   零件要用得上就写进 asset_set；同一场景一般 3-6 个零件即可，不要堆砌。
+   同一个 asset_set 里不要同时出现 outdoor 和 vehicle、outdoor 和 cave；不要给地铁、车厢这类场景配会议桌。
 4. 只写这场戏真正用得上的 2-4 个道具、2-4 条事实。
 5. 用中文写作正文，id 用英文小写。"""
 

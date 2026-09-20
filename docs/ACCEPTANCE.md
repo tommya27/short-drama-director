@@ -172,6 +172,28 @@
 验证：`npm run build`（含 `tsc --noEmit`）通过；开发服务器已提供该组件。
 未做：键盘微调（方向键）与移动端触摸缩放——CSS `resize` 在触摸设备上不生效，列入待人工项。
 
+## 零件库扩容与矿洞形态（2026-09-20）
+
+背景：用户用「矿井入口」验证时发现场景被渲染成室外+松树（`key=mine_entrance`，
+`asset_set=[cabinet,bench,outdoor,rock,pine,rail,lamp]`）——矿洞里长了松树、还摆了柜子。
+
+- 新增形态 `cave`（矿洞/地道/隧道/地窖/墓道/窑）：岩壁、顶板、隧道木拱、木支撑、铁轨、矿车、矿灯、碎石；
+  形态判定按显式 `cave` 标记优先，其次按 scene_key/场景名关键词（中英文）兜底。
+- 提示词补硬规则：矿洞/地道类**必须**用 `cave`，配 timber/track/minecart/lantern/tunnel/debris/rock，
+  且**禁止**出现 pine 或会议桌；同一 asset_set 不得同时出现 outdoor 与 cave/vehicle。
+- 零件库扩容：新增 `sofa · shelf · crate · barrel · gate · door · car · podium`，并在提示词中按场景类型
+  给出选件指引（家/仓库工地/店铺/发布会礼堂/矿洞…），同一场景建议 3–6 件。
+- 实测（live，重启后）：
+  - 「矿井入口…」→ `mine_entrance` `[cave,rock,timber,track,minecart,lantern,debris]`
+  - 「废弃矿洞深处…」→ `mine_shaft` `[cave,rock,timber,track,minecart,lantern,tunnel,debris]`
+  - 「老小区客厅…」→ `apartment` `[table,cabinet,plants,sofa,door]`
+  - 「深夜仓库…」→ `warehouse` `[timber,shelf,crate,barrel,gate,door]`
+  - 「产品发布会后台…」→ `corridor` `[plants,bench,lamp,door]`
+- 测试 `78 passed`；前端 `npm run build`（含 `tsc --noEmit`）通过。
+- 边界（如实说明）：这是**零件库拼装**，不是生成式 3D；遇到零件库覆盖不到的场景会退回最接近的形态。
+  真正的"任意场景生成 3D 世界"需要世界模型，已按台账规则把候选来源记入 `docs/REFERENCES.md`
+  （World Labs World API 等，均标记为待阅读；本项目可用模型清单中不含 3D/世界模型）。
+
 ## 尚待人工/设备验证
 
 - 完整浏览器逐项操作、不同窗口尺寸与不同 GPU 的 3D 外观/性能检查，特别是 WebGL 丢失后的实机回退。本轮不以构建或 HTTP 成功冒充全部视觉验收。

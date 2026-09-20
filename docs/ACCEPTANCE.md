@@ -94,6 +94,24 @@
 - 3D 舞台新增室外/载具形态：`asset_set` 含 `outdoor` 时渲染地面、岩石、松树、护栏与驾驶台，
   室内元素（墙、会议桌、椅子、绿植、文件柜）自动隐藏；构建通过。
 
+## 场景形态与 3D 对话显示（2026-09-20）
+
+- 问题：此前 3D 舞台只有「室内/室外」两种形态，模型给 `subway`/`cafe` 时挑的是室内道具集，
+  因此**看起来还是原来那几个场景**。已扩充词表并加入形态判定。
+- 词表新增：`bench · pole · counter · desk · bed · street · vehicle · lamp · window_strip`；
+  提示词按场景类型给出选型规则（载具→bench/pole/console/rail/window_strip；咖啡→counter/table/chairs/lamp；
+  医院→bed/cabinet/bench；街头→lamp/pillars/rail；并明确禁止给地铁配会议桌）。
+- `web/src/stage-manifest.ts` 新增 `StageForm` 与 `stageForm()`：显式 asset 标记优先，
+  其次按 scene_key/场景名关键词兜底（中文关键词也覆盖），确保模型只给 key 时也能换形态。
+- `web/src/Stage3D.tsx` 新增 `VehicleInterior`（车厢顶/车窗带/长椅/立柱/驾驶台）与
+  `StreetScene`（路面/路灯/护栏/立柱），以及 `Bench/Pole/Counter/Lamp/Desk/Bed` 道具；
+  非室内形态下室内元素按 `visible` 隐藏，`counter/desk/bed` 在室内形态下按需补件。
+- **3D 对话显示**：每个有台词的角色头顶渲染说话气泡（选中角色高亮），并用虚线指向 `target_id`；
+  内容取自真实事件（`props.events` 中各角色最近一条），不是预制动画。
+- 实测（live）：地铁→`subway` `[bench,pole,vehicle,rail,console,window_strip]`；
+  咖啡馆→`cafe` `[table,chairs,counter,lamp]`；医院→`hospital` `[cabinet,bench,counter,bed]`；
+  华山→`mountain_peak` `[outdoor,rock,pine,rail]`。全量 `78 passed`，前端构建通过。
+
 ## 尚待人工/设备验证
 
 - 完整浏览器逐项操作、不同窗口尺寸与不同 GPU 的 3D 外观/性能检查，特别是 WebGL 丢失后的实机回退。本轮不以构建或 HTTP 成功冒充全部视觉验收。

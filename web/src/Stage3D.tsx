@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Line, OrbitControls, useTexture } from '@react-three/drei';
+import { Html, Line, OrbitControls, useTexture } from '@react-three/drei';
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Group, Vector3, MathUtils } from 'three';
 import type { WorldStageProps, StageMotion } from './types';
@@ -43,12 +43,40 @@ function Outdoor({layout}:{layout:StageLayout}) {
   {layout.assets.includes("pillars")&&[-3.4,3.4].map(x=><Box key={x} position={[x,1.6,-3.6]} size={[.5,3.2,.5]} color={layout.wall}/>)}
  </group>;
 }
+function Bench({position,rotation=0,length=3.4,color="#4d5a63",accent="#8fb0b6"}:{position:Vec3;rotation?:number;length?:number;color?:string;accent?:string}) {return <group position={position} rotation={[0,rotation,0]}><Box position={[0,.45,0]} size={[length,.14,.5]} color={color}/><Box position={[0,.72,-.22]} size={[length,.5,.1]} color={accent}/>{[-length/2+.25,length/2-.25].map(x=><Box key={x} position={[x,.22,0]} size={[.12,.44,.42]} color={color}/>)}</group>;}
+function Pole({positions,color="#c9ced0"}:{positions:Vec3[];color?:string}) {return <>{positions.map((p,i)=><group key={i} position={p}><mesh position={[0,1.15,0]} castShadow><cylinderGeometry args={[.05,.05,2.3,8]}/><meshStandardMaterial color={color} metalness={.5} roughness={.4}/></mesh><mesh position={[0,2.3,0]}><sphereGeometry args={[.07,8,8]}/><meshStandardMaterial color={color}/></mesh></group>)}</>;}
+function Counter({position,rotation=0,length=4.2,color="#6b5a44",accent="#d8cdb6"}:{position:Vec3;rotation?:number;length?:number;color?:string;accent?:string}) {return <group position={position} rotation={[0,rotation,0]}><Box position={[0,.55,0]} size={[length,1.1,.7]} color={color}/><Box position={[0,1.13,0]} size={[length+.2,.08,.86]} color={accent}/>{[-length/3,0,length/3].map(x=><Box key={x} position={[x,1.32,0]} size={[.16,.3,.16]} color={accent}/>)}</group>;}
+function Lamp({positions,color="#5c6660",light="#ffe9b0"}:{positions:Vec3[];color?:string;light?:string}) {return <>{positions.map((p,i)=><group key={i} position={p}><mesh position={[0,1.6,0]} castShadow><cylinderGeometry args={[.05,.05,3.2,8]}/><meshStandardMaterial color={color}/></mesh><mesh position={[0,3.2,0]}><sphereGeometry args={[.18,10,10]}/><meshStandardMaterial color={light} emissive={light} emissiveIntensity={.5}/></mesh></group>)}</>;}
+function Desk({positions,color="#6b5a44",accent="#c9c2b0"}:{positions:Vec3[];color?:string;accent?:string}) {return <>{positions.map((p,i)=><group key={i} position={p}><Box position={[0,.72,0]} size={[1.2,.08,.6]} color={accent}/><Box position={[0,.36,0]} size={[1.1,.7,.5]} color={color}/></group>)}</>;}
+function Bed({position,color="#dfe3e0",accent="#9fb3bb"}:{position:Vec3;color?:string;accent?:string}) {return <group position={position}><Box position={[0,.3,0]} size={[1.1,.3,2.1]} color={color}/><Box position={[0,.48,-.85]} size={[1,.14,.34]} color={accent}/><Box position={[0,.62,0]} size={[1.06,.06,1.9]} color={accent}/></group>;}
+
+function VehicleInterior({layout}:{layout:StageLayout}) {
+ const color=layout.wood, accent=layout.accent;
+ return <group>
+  <Box position={[0,2.55,0]} size={[9.6,.16,4.2]} color="#dfe2e2"/>
+  <group visible={layout.assets.includes("window_strip")}><Box position={[0,1.75,-2.05]} size={[9.4,1.05,.06]} color="#2c3a42"/>{[-3.4,-1.1,1.1,3.4].map(x=><Box key={x} position={[x,1.75,-2.0]} size={[.08,1.05,.05]} color="#7c8b91"/>)}</group>
+  <group visible={layout.assets.includes("bench")}><Bench position={[-2.6,0,1.35]} rotation={0} length={3.6} color={color} accent={accent}/><Bench position={[2.6,0,1.35]} rotation={0} length={3.6} color={color} accent={accent}/><Bench position={[-2.6,0,-1.35]} rotation={Math.PI} length={3.6} color={color} accent={accent}/><Bench position={[2.6,0,-1.35]} rotation={Math.PI} length={3.6} color={color} accent={accent}/></group>
+  <group visible={layout.assets.includes("pole")}><Pole positions={[[-1.3,0,.2],[0,0,-.2],[1.3,0,.2],[-2.2,0,-.2],[2.2,0,-.2]]}/></group>
+  {layout.assets.includes("console")&&<Console position={[0,0,-1.9]} color={color} accent={accent}/>}
+  <group visible={layout.assets.includes("table")}><Box position={[0,.6,0]} size={[2.6,.1,1.4]} color={layout.wood}/><Box position={[0,.3,0]} size={[.2,.6,1.1]} color="#4c5459"/></group>
+ </group>;
+}
+function StreetScene({layout}:{layout:StageLayout}) {
+ return <group>
+  <Box position={[0,.02,0]} size={[19,.06,15]} color={layout.wood}/>
+  <Lamp positions={[[-5,0,-2],[5,0,-2],[-5,0,3],[5,0,3]]} color={layout.wall}/>
+  {[-6,6].map(x=><Box key={x} position={[x,1.3,-4.4]} size={[3,.12,2.2]} color={layout.wall}/>)}
+  <Rail position={[0,0,4.6]} length={11} color={layout.accent}/>
+  {layout.assets.includes("pillars")&&[-3.6,3.6].map(x=><Box key={x} position={[x,1.8,-3.4]} size={[.6,3.6,.6]} color={layout.wall}/>)}
+ </group>;
+}
 function Room({layout}:{layout:StageLayout}) {
  const historic=layout.key==='inn'||layout.key==='mansion';
- const outdoor=layout.assets.includes('outdoor');
+ const form=layout.form;
+ const outdoor=form==='outdoor';
  return <group>
-  <Box position={[0,-.18,0]} size={outdoor?[19,.36,15]:[10,.36,8]} color={layout.floor}/>
-  <group visible={!outdoor}>
+  <Box position={[0,-.18,0]} size={form==='interior'?[10,.36,8]:[19,.36,15]} color={layout.floor}/>
+  <group visible={form==='interior'}>
   <Box position={[0,1.7,-4]} size={[10,3.5,.14]} color={layout.wall}/>
   <Box position={[-5,1.3,0]} size={[.14,2.7,8]} color={layout.wall}/>
   <Box position={[0,.015,0]} size={[7,.035,5.5]} color={historic?'#998b73':'#c8cdc2'}/>
@@ -66,6 +94,11 @@ function Room({layout}:{layout:StageLayout}) {
   </group>
   </group>
   {outdoor&&<Outdoor layout={layout}/>}
+  {form==='vehicle'&&<VehicleInterior layout={layout}/>}
+  {form==='street'&&<StreetScene layout={layout}/>}
+  {layout.assets.includes("counter")&&form!=='outdoor'&&<Counter position={[0,0,-2.6]} color={layout.wood} accent={layout.accent}/>}
+  {layout.assets.includes("desk")&&form==='interior'&&<Desk positions={[[-3,0,-1],[0,0,-1],[3,0,-1]]} color={layout.wood} accent={layout.accent}/>}
+  {layout.assets.includes("bed")&&form==='interior'&&<Bed position={[-3.4,0,1.6]} color="#e6e9e6" accent={layout.accent}/>}
   {layout.zones.slice(1).map((zone,i)=><group key={zone} position={layout.anchors[zone]}><Box position={[0,-.12,0]} size={[3.4,.2,3]} color={layout.floor}/><Box position={[0,.025,0]} size={[3.1,.02,2.7]} color={i%2?'#aeb6b9':'#b8b29f'}/></group>)}
  </group>;
 }
@@ -133,6 +166,11 @@ function SceneContent(props: Props) {
   <ArtBoundary>{props.artifacts?.filter(item=>item.kind==='backdrop').slice(0,1).map(item=><Backdrop key={item.asset_id} url={assetSrc(item.url)}/>)}{(props.artifacts??[]).filter(item=>item.kind==='portrait'&&item.actor_id&&positions[String(item.actor_id)]).map(item=>{const anchor=positions[String(item.actor_id)];return <PortraitSprite key={item.asset_id} url={assetSrc(item.url)} position={[anchor[0],2.35,anchor[2]]}/>;})}</ArtBoundary>
   {layout.points.map(point=><group key={point.id} position={point.position}><mesh rotation={[-Math.PI/2,0,0]}><ringGeometry args={[.18,.22,24]}/><meshBasicMaterial color={layout.accent} transparent opacity={.5}/></mesh></group>)}
   {actors.map((actor,index)=>{const event=props.events.filter(e=>e.actor_id===actor.id).at(-1); return <Avatar key={actor.id} id={actor.id} color={colorFor(index)} position={positions[actor.id]} target={positions[String(event?.target_id)]??[0,0,0]} selected={props.selectedActor===actor.id} motion={props.motion} onSelect={()=>props.onActorSelect(actor.id)} onHover={value=>setHovered(value?`actor:${actor.id}`:null)}/>;})}
+  {actors.map(actor=>{const latest=props.events.filter(e=>e.actor_id===actor.id).at(-1);const anchor=positions[actor.id];if(!latest||!anchor)return null;
+   const selected=props.selectedActor===actor.id;const show=!!latest.dialogue||selected;if(!show)return null;
+   return <Html key={`say:${actor.id}`} position={[anchor[0],2.3,anchor[2]]} center distanceFactor={9} zIndexRange={[20,0]} style={{pointerEvents:'none'}}><div className={`speech-bubble ${selected?'chosen':''}`}><b>{actor.name}</b>{latest.action&&<span>{latest.action}</span>}{latest.dialogue&&<em>“{latest.dialogue}”</em>}</div></Html>;})}
+  {actors.map(actor=>{const latest=props.events.filter(e=>e.actor_id===actor.id).at(-1);const target=latest?.target_id?positions[latest.target_id]:undefined;const from=positions[actor.id];if(!target||!from)return null;
+   return <Line key={`talk:${actor.id}`} points={[new Vector3(from[0],1.05,from[2]),new Vector3(target[0],1.05,target[2])]} color="#c79353" lineWidth={1.2} dashed dashSize={.22} gapSize={.16}/>;})}
   {Object.values(props.snapshot.items??{}).map((item,index)=>{const p=item.holder?positions[item.holder]:undefined;const zone=layout.anchors[item.location??'']??[0,0,0];const point=layout.points.find(point=>point.item_id===item.id);return <Item key={item.id} id={item.id} index={index} holder={item.holder} motion={props.motion} selected={selectedItem===item.id} onSelect={()=>setSelectedItem(selectedItem===item.id?null:item.id)} onHover={value=>setHovered(value?`item:${item.id}`:null)} position={p?[p[0]+.45,.7,p[2]+.15]:point?.position??[zone[0]+(index%3)*.45-.5,zone[0]===0&&layout.assets.includes("table")?1.12:.15,zone[2]+.1]}/>;})}
   <StageLabels labels={labels} actorIds={actors.map(actor=>actor.id)}/>
   {props.showObservers&&lastEvent&&positions[lastEvent.actor_id]&&(lastEvent.observed_by??[]).filter(id=>id!==lastEvent.actor_id&&positions[id]).map(id=><Line key={id} points={[new Vector3(...positions[lastEvent.actor_id]).add(new Vector3(0,1,0)),new Vector3(...positions[id]).add(new Vector3(0,1,0))]} color="#508e80" dashed dashSize={.12} gapSize={.08} lineWidth={1.5}/>)}

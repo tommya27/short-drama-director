@@ -19,7 +19,9 @@ from .scene_input import portable_spec, public_spec
 
 #: 3D/2.5D 舞台能直接渲染的道具名（模型只能从这个词表里选，避免生成渲染不了的资产）
 ASSET_VOCABULARY = ("table", "chairs", "screen", "cabinet", "plants",
-                    "outdoor", "rock", "pine", "rail", "console", "pillars", "bed")
+                    "bench", "pole", "counter", "desk", "bed",
+                    "outdoor", "street", "vehicle", "rock", "pine", "rail", "console",
+                    "pillars", "lamp", "window_strip")
 
 OPENING_SYSTEM = f"""你是短剧的前期策划，把作者的一句话想法扩写成可以直接开演的设定。
 只能输出 JSON 对象，不要解释。字段：
@@ -41,7 +43,7 @@ OPENING_SYSTEM = f"""你是短剧的前期策划，把作者的一句话想法�
   "items": [{{"id": "英文小写 id", "name": "道具名", "holder": "角色 id 或 null", "location": "所在地点"}}],
   "facts": [{{"id": "英文小写 id", "label": "事实描述", "known_by": ["角色 id"], "source": "作者设定 或 剧中线索"}}],
   "scene_manifest": {{
-    "scene_key": "英文小写场景类型，如 boardroom/office/hotel/inn/mansion/mountain/ship/cafe/generic",
+    "scene_key": "英文小写场景类型，如 boardroom/office/cafe/hospital/classroom/inn/mansion/mountain/ship/subway/street/generic",
     "name": "场景类型中文名，如 山巅 / 游轮驾驶舱",
     "renderer_type": "generic3d",
     "palette": {{"floor": "#rrggbb", "wall": "#rrggbb", "wood": "#rrggbb", "accent": "#rrggbb"}},
@@ -54,8 +56,14 @@ OPENING_SYSTEM = f"""你是短剧的前期策划，把作者的一句话想法�
 要求：
 1. characters 给 3-4 个，立场要真正冲突；只能有一个 protagonist。
 2. locations 与 zones 的区域名必须一致；zone 坐标 x∈[-6,6]、z∈[-5,5]，彼此不要重叠。
-3. 室外/载具场景（山、海、船、车）必须把 "outdoor" 放进 asset_set，并只用 rock/pine/rail/console 之类的道具；
-   室内场景用 table/chairs/screen/cabinet/plants。
+3. 按场景选形态标记，必须放进 asset_set：
+   - 户外自然（山、林、海、街外）："outdoor"；配 rock / pine / rail。
+   - 交通载具（地铁、火车、船、车、飞机、驾驶舱）："vehicle"；配 bench / pole / console / rail / window_strip。
+   - 街头广场（城市街道、广场、码头）："street"；配 lamp / pillars / rail。
+   - 咖啡/餐厅/酒吧：配 counter / table / chairs / lamp。
+   - 医院/诊所：配 bed / cabinet；教室/学校：配 desk / chairs / screen。
+   - 会议室/办公室：配 table / chairs / screen / cabinet / plants。
+   同一个 asset_set 里不要同时出现 outdoor 和 vehicle；不要给地铁、车厢这类场景配会议桌。
 4. 只写这场戏真正用得上的 2-4 个道具、2-4 条事实。
 5. 用中文写作正文，id 用英文小写。"""
 

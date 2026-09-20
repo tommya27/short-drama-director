@@ -2,7 +2,22 @@ import type { SceneSpec, WorldSnapshot } from './types';
 export type Vec3 = [number, number, number];
 export type CameraPreset = { id: string; label: string; position?: Vec3; target?: Vec3 };
 export type InteractionPoint = { id: string; label: string; position: Vec3; item_id?: string };
-export type StageLayout = { key: string; name: string; floor: string; wall: string; wood: string; accent: string; zones: string[]; anchors: Record<string, Vec3>; cameras: CameraPreset[]; assets: string[]; renderer: string; characterColors: string[]; points: InteractionPoint[] };
+export type StageForm = "interior" | "outdoor" | "vehicle" | "street";
+export type StageLayout = { key: string; name: string; floor: string; wall: string; wood: string; accent: string; zones: string[]; anchors: Record<string, Vec3>; cameras: CameraPreset[]; assets: string[]; renderer: string; characterColors: string[]; points: InteractionPoint[]; form: StageForm };
+/** 形态判定：显式 asset 标记优先，其次按场景类型关键词兜底（模型只给 scene_key 时也能换形态）。 */
+const formPatterns: Array<[StageForm, RegExp]> = [
+ ["vehicle", /subway|metro|train|tram|car|bus|plane|aircraft|cockpit|bridge|ship|boat|ferry|yacht|cabin|车厢|地铁|高铁|列车|船|机舱|驾驶/],
+ ["street", /street|plaza|square|pier|dock|market|alley|街头|广场|码头|集市|巷/],
+ ["outdoor", /mountain|peak|forest|wood|beach|sea|ocean|park|desert|field|garden|camp|cliff|山|峰|林|海|滩|野|草原|营地|崖/],
+];
+export function stageForm(key: string, name: string, assets: string[]): StageForm {
+ if (assets.includes("outdoor") && !assets.includes("vehicle")) return "outdoor";
+ if (assets.includes("vehicle")) return "vehicle";
+ if (assets.includes("street")) return "street";
+ const probe = `${key} ${name}`.toLowerCase();
+ for (const [form, pattern] of formPatterns) if (pattern.test(probe)) return form;
+ return "interior";
+}
 // One manifest per file; adding a scene never changes the story engine.
 const files = import.meta.glob('../../scene_manifests/*.json', { eager: true, import: 'default' }) as Record<string, Record<string, unknown>>;
 const manifests = Object.fromEntries(Object.values(files).map(value => [String(value.scene_key), value]));
@@ -34,7 +49,8 @@ export function layoutFor(scene: SceneSpec, snapshot: WorldSnapshot): StageLayou
  const assets = Array.isArray(manifest.asset_set) ? manifest.asset_set.filter((v): v is string => typeof v === 'string') : ['table','screen','chairs','plants','cabinet'];
  const characterColors = Array.isArray(manifest.character_colors) ? manifest.character_colors.filter((v): v is string => typeof v === 'string') : [];
  const points: InteractionPoint[] = Array.isArray(manifest.interaction_points) ? manifest.interaction_points.flatMap(raw => raw && typeof raw === 'object' && 'id' in raw && vector(raw.position) ? [{id:String(raw.id),label:String(raw.label ?? raw.id),position:vector(raw.position)!,item_id:typeof raw.item_id==='string'?raw.item_id:undefined}] : []) : [];
- return { key, name:scene.location, floor:palette?.floor ?? p[0], wall:palette?.wall ?? p[1], wood:palette?.wood ?? p[2], accent:palette?.accent ?? p[3], zones, anchors, cameras:cameras.length ? cameras : [{id:'wide',label:'全景'}], assets, renderer:String(manifest.renderer_type ?? 'generic3d'), characterColors, points };
+ const form = stageForm(key, String(manifest.name ?? scene.location ?? ''), assets);
+ return { key, name:scene.location, floor:palette?.floor ?? p[0], wall:palette?.wall ?? p[1], wood:palette?.wood ?? p[2], accent:palette?.accent ?? p[3], zones, anchors, cameras:cameras.length ? cameras : [{id:'wide',label:'全景'}], assets, renderer:String(manifest.renderer_type ?? 'generic3d'), characterColors, points, form };
 }
 export function actorPositions(snapshot: WorldSnapshot, layout: StageLayout): Record<string, Vec3> {
  const positions: Record<string, Vec3> = {};

@@ -7,7 +7,8 @@ from typing import Any, Callable
 from .models import default_boardroom_spec, default_state, normalize_spec, new_id
 from .repository import NarrativeRepository, ConflictError
 from .sandbox import AgentSandbox, LLMCandidateGenerator, project
-from .dramatic import assess, ensure_dramatic, render_screenplay, render_storyboard
+from .dramatic import (advance_beat_state, assess, beat_at, default_beats, ensure_dramatic,
+                        render_screenplay, render_storyboard)
 
 
 class NarrativeService:
@@ -106,6 +107,20 @@ class NarrativeService:
 
     def commit(self, owner: str, draft_id: str, idempotency_key: str, *, expected_version: int) -> dict:
         return self.repo.commit(owner, draft_id, idempotency_key=idempotency_key, expected_version=expected_version)
+
+    def advance_beat(self, owner: str, scene_id: str, branch_id: str, *, base_revision: int) -> dict:
+        """作者确认本拍完成，进入下一拍。系统不自动推进。"""
+        branch = self.branch(owner, scene_id, branch_id)
+        if branch["revision"] != base_revision:
+            raise ConflictError("版本已变化，请刷新场景")
+        beats = branch["spec"].get("beats") or default_beats()
+        state = copy.deepcopy(branch["state"])
+        tension = max([int(e.get("tension_delta", 0) or 0) for e in state.get("events", []) if isinstance(e, dict)] or [0])
+        advance_beat_state(state, beats, tension=tension)
+        updated = self.repo.update_branch_state(owner, scene_id, branch_id, state, expected_revision=base_revision)
+        return {"scene_id": scene_id, "branch_id": branch_id, "revision": updated["revision"],
+                "beat_state": state.get("beat_state"), "beat": beat_at(state, beats),
+                "beat_total": len(beats)}
 
     def edit_scene(self, owner: str, scene_id: str, branch_id: str, base_revision: int, changes: dict,
                    *, activate: bool = False) -> dict:

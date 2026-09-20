@@ -133,6 +133,20 @@ class NarrativeRepository:
             raise LookupError("场景或分支不存在")
         return self._decode(row)
 
+    def update_branch_state(self, owner: str, scene_id: str, branch_id: str, state: dict[str, Any], *,
+                            expected_revision: int) -> dict[str, Any]:
+        """作者动作导致的状态变更（如进入下一拍）：带乐观锁地写回并提升正式版本。"""
+        with self._connection(write=True) as c:
+            branch = self._branch(c, owner, scene_id, branch_id)
+            if branch["revision"] != expected_revision:
+                raise ConflictError("正式版本已变化，请刷新场景")
+            revision = expected_revision + 1
+            state = copy.deepcopy(state)
+            state["revision"] = revision
+            c.execute("UPDATE branches SET revision=?,state_json=?,updated_at=? WHERE scene_id=? AND id=? AND owner=?",
+                      (revision, self._json(state), now_iso(), scene_id, branch_id, owner))
+            return self._branch(c, owner, scene_id, branch_id)
+
     def _draft(self, c: sqlite3.Connection, owner: str, draft_id: str) -> dict[str, Any]:
         row = c.execute("SELECT * FROM drafts WHERE id=? AND owner=?", (draft_id, owner)).fetchone()
         if row is None:

@@ -282,6 +282,23 @@ def assess(spec: dict, state: dict, events: list[dict], *, contract: dict | None
     }
 
 
+def advance_beat_state(state: dict, beats: list[dict], *, tension: int = 0) -> dict:
+    """把当前拍标记完成并推进到下一拍（由作者触发，不由系统自动推进）。"""
+    beat_state = dict(state.get("beat_state") or {})
+    index = max(0, min(int(beat_state.get("index", 0)), max(0, len(beats) - 1)))
+    completed = list(beat_state.get("completed_beats") or [])
+    if beats and index < len(beats) - 1:
+        current = str(beats[index].get("beat_id", f"beat_{index + 1}"))
+        if current not in completed:
+            completed.append(current)
+        index += 1
+    beat_state.update(index=index, completed_beats=completed,
+                      tension=max(int(beat_state.get("tension", 0) or 0), int(tension or 0)),
+                      updated_by="author")
+    state["beat_state"] = beat_state
+    return state
+
+
 def _next_beat_suggestion(beat: dict) -> str:
     return f"本拍要求：{beat.get('information_change', '')}；完成信号：{beat.get('completion_signal', '')}"
 

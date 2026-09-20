@@ -368,3 +368,15 @@ input[type="checkbox"] { width: 16px; height: 16px; min-height: 0; flex: 0 0 16p
 .mode-badge.mode-offline::before { background: #e8b23a; box-shadow: 0 0 0 3px rgba(232, 178, 58, .18); }
 .mode-badge.mode-unknown::before { background: var(--muted); }
 .landing-footer.mode-badge { justify-content: center; }
+
+/* 剧情结构层：节拍条与剧情检查面板 */
+.beat-chip { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 999px; background: var(--bg-active, #eef2ec); color: #3c5a4c; font-size: 11px; white-space: nowrap; }
+.drama-check { border-left: 3px solid #c79353; padding-left: 10px; }
+.drama-score { font-size: 12px; color: #5d6a63; margin-bottom: 6px; }
+.drama-row { display: grid; grid-template-columns: 68px 46px 1fr; gap: 6px; align-items: baseline; font-size: 11px; padding: 3px 0; border-bottom: 1px dashed #e6e8e0; }
+.drama-row b { color: #38443e; font-weight: 600; }
+.drama-row span { font-weight: 600; }
+.drama-row small { color: var(--text-2, #6b7770); }
+.drama-row.pass span { color: #2f7a55; }
+.drama-row.weak span { color: #b8862e; }
+.drama-row.none span { color: #9aa39c; }

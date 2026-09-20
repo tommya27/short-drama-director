@@ -1,4 +1,4 @@
-import type { SceneDraft, SceneOutput, SceneRecord, SceneSpec, WorldSnapshot, OutputType, SceneEvent, Directive, ReplayHistory, SceneArtifact } from "./types";
+import type { SceneDraft, SceneOutput, SceneRecord, SceneSpec, WorldSnapshot, OutputType, SceneEvent, Directive, ReplayHistory, SceneArtifact, DramaticBeat, BeatState } from "./types";
 
 const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") || "http://127.0.0.1:8200/api/v1";
 /** 素材 URL 是后端相对路径（/api/v1/assets/...），这里补成绝对地址。 */
@@ -69,6 +69,7 @@ export const api = {
   previewDraft: (draft: SceneDraft) => request<SceneDraft>(`/drafts/${encodeURIComponent(draft.draft_id)}/preview`, "POST", { expected_version: draft.version }),
   commitDraft: (draft: SceneDraft, revision: number) => request<SceneDraft>(`/drafts/${encodeURIComponent(draft.draft_id)}/commit`, "POST", { expected_version: draft.version, revision, idempotency_key: draft.draft_id }),
   discardDraft: (draft: SceneDraft) => request<SceneDraft>(`/drafts/${encodeURIComponent(draft.draft_id)}/discard`, "POST", { expected_version: draft.version }),
+  advanceBeat: (id: string, branchId: string, revision: number) => request<{ scene_id: string; branch_id: string; revision: number; beat_state: BeatState; beat: DramaticBeat; beat_total: number }>(`/scenes/${encodeURIComponent(id)}/beats/advance`, "POST", { branch_id: branchId, base_revision: revision }),
   createBranch: (id: string, branchId: string, name: string, revision: number) => request<{ branch_id: string }>(`/scenes/${encodeURIComponent(id)}/branches`, "POST", { from_branch_id: branchId, name, base_revision: revision, activate: true }),
   addDirective: (id: string, branchId: string, text: string, actorId: string | null, step: number) => request<Directive>(`/scenes/${encodeURIComponent(id)}/directives`, "POST", { branch_id: branchId, text, target_actor_id: actorId, start_step: step }),
   cancelDirective: (id: string, branchId: string, directiveId: string) => request(`/scenes/${encodeURIComponent(id)}/directives/${encodeURIComponent(directiveId)}?branch_id=${encodeURIComponent(branchId)}`, "DELETE"),

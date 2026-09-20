@@ -163,6 +163,12 @@ def delete_directive(scene_id: str, directive_id: str, branch_id: str | None = Q
     return _handle(lambda: store.remove_directive(scene_id, directive_id, branch_id))
 
 
+@app.post("/api/v1/scenes/{scene_id}/beats/advance")
+def advance_beat(scene_id: str, body: JsonPayload) -> dict[str, Any]:
+    """作者确认本拍完成 → 进入下一拍（系统不自动推进）。"""
+    return _handle(lambda: store.advance_beat(scene_id, body.as_dict()))
+
+
 @app.post("/api/v1/scenes/{scene_id}/outputs")
 def create_output(scene_id: str, body: JsonPayload) -> dict[str, Any]:
     return _handle(lambda: store.create_output(scene_id, body.as_dict()))

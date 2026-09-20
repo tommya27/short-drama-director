@@ -243,6 +243,11 @@ class DirectorStore:
         return result['directive']
     def remove_directive(self,sid,did,bid=None):
         bid=self._bid(sid,bid); branch=self._branch(sid,bid); return self.service.cancel_directive(self.owner,sid,bid,branch['revision'],did)
+    def advance_beat(self,sid,payload):
+        bid=self._bid(sid,payload.get('branch_id')); branch=self._branch(sid,bid)
+        base=self._version(payload.get('base_revision'),branch['revision'])
+        return self.service.advance_beat(self.owner,sid,bid,base_revision=base)
+
     def create_output(self,sid,payload):
         bid=self._bid(sid,payload.get('branch_id')); branch=self._branch(sid,bid); ids=payload.get('source_event_ids') or payload.get('event_ids') or [e['id'] for e in branch['state'].get('events',[])]
         kind=str(payload.get('type') or 'script')
@@ -253,9 +258,26 @@ class DirectorStore:
             if not chosen:
                 raise ValueError('还没有正式事件可以整理成输出：请先提交至少一轮剧情')
             if kind=='storyboard':
-                content={'kind':'storyboard','shots':render_storyboard(branch['spec'],chosen)}
+                shots=render_storyboard(branch['spec'],chosen)
+                rows=[]
+                for shot in shots:
+                    row=f"镜{shot['shot']:02d}｜{shot['shot_size']}｜{shot['camera']}｜{shot['actor']}：{shot['frame']}"
+                    if shot.get('dialogue'):
+                        row+=f"｜对白：{shot['dialogue']}"
+                    if shot.get('props'):
+                        row+=f"｜道具：{shot['props']}"
+                    row+=f"｜{shot['rhythm']}｜【来源：{shot['source_event_id']}】"
+                    rows.append(row)
+                head=f"# {branch['spec'].get('title','')} · 分镜草稿"
+                content={'kind':'storyboard','scene_id':sid,'branch_id':bid,'revision':branch['revision'],
+                         'event_ids':[e['id'] for e in chosen],'shots':shots,
+                         'content':head + "\n\n" + "\n".join(rows),
+                         'editable':True,'source':'deterministic_storyboard'}
             else:
-                content={'kind':'screenplay','text':render_screenplay(branch['spec'],chosen)}
+                content={'kind':'script','scene_id':sid,'branch_id':bid,'revision':branch['revision'],
+                         'event_ids':[e['id'] for e in chosen],
+                         'content':render_screenplay(branch['spec'],chosen),
+                         'editable':True,'source':'deterministic_screenplay'}
             return self._store_output(sid,content,ids)
         content=self.service.output(self.owner,sid,bid,'script' if kind=='screenplay' else kind,ids,base_revision=branch['revision'])
         return self._store_output(sid,content,ids)

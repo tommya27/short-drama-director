@@ -4,6 +4,7 @@ export type SceneSpec = {
   scene_id: string; title: string; premise: string; genre: string; location: string; locations: string[];
   actors: ActorSpec[]; characters?: ActorSpec[]; goals: string[]; goal?: string; conflict: string;
   relationships: string[]; items: ItemState[]; facts: FactState[]; author_facts: string[]; scene_manifest: SceneManifest;
+  contract?: Record<string, string>; beats?: DramaticBeat[];
 };
 export type ActorState = ActorSpec & { status?: "active" | "watching" | "waiting" | string; history?: string[]; known_fact_ids?: string[] };
 export type ItemState = { id: string; name: string; holder?: string | null; location?: string | null; state?: string; [key: string]: unknown };
@@ -17,13 +18,14 @@ export type SceneEvent = {
 export type Directive = { id: string; text: string; target_actor_id?: string | null; start_step: number; end_step?: number | null; status: "pending" | "applied" | string; created_at?: string; applied_step?: number };
 export type WorldSnapshot = {
   branch_id: string; revision: number; step: number; actors: Record<string, ActorState>; locations: string[];
-  items: Record<string, ItemState>; facts: FactState[]; events: SceneEvent[]; directives: Directive[]; [key: string]: unknown;
+  items: Record<string, ItemState>; facts: FactState[]; events: SceneEvent[]; directives: Directive[]; beat_state?: BeatState; [key: string]: unknown;
 };
 export type SceneDraft = {
   request_id?: string;
   draft_id: string; scene_id: string; branch_id: string; version: number; base_revision: number; candidate_events: SceneEvent[];
   state_diff?: Record<string, unknown>; preview_state?: WorldSnapshot; proposed_state?: WorldSnapshot; locks: string[];
   validation?: { valid?: boolean; ok?: boolean; errors?: string[]; warnings?: string[]; checks?: Array<Record<string, unknown>> };
+  generation_source?: string | null; assessment?: DramaticAssessment | null;
   status: "pending" | "previewed" | "committed" | "discarded" | string; committed_revision?: number; updated_at?: string; [key: string]: unknown;
 };
 export type RunPhase = "idle" | "generating" | "review" | "scheduled" | "cancelling";
@@ -34,6 +36,11 @@ export type SceneOutput = { version?: number; output_id?: string; scene_id: stri
 export type ReplayFrame = { frame_id: string; source_branch_id: string; revision: number; reason: string; scene_spec: SceneSpec; state: WorldSnapshot };
 export type ReplayHistory = { scene_id: string; branch_id: string; revision: number; frames: ReplayFrame[] };
 export type StageMotion = { paused: boolean; speed: number; seek: number };
+/** 剧情结构层：本拍信息、逐项检查与整体评估（来自后端 assessment）。 */
+export type DramaticBeat = { beat_id: string; purpose: string; pressure?: string; information_change?: string; completion_signal?: string };
+export type DramaticCheck = { item: string; status: string; detail: string };
+export type DramaticAssessment = { beat?: DramaticBeat; beat_index?: number; beat_total?: number; tension?: number; checks?: DramaticCheck[]; warnings?: string[]; passed?: number; total?: number; suggestion?: string };
+export type BeatState = { index?: number; completed_beats?: string[]; tension?: number };
 /** T1 美术素材：文生图产出，带提示词/模型/时间戳；仅作视觉层，不参与世界状态裁决。 */
 export type SceneArtifact = {
   asset_id: string; scene_id: string; kind: "backdrop" | "portrait" | "prop"; label: string;

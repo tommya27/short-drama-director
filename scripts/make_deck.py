@@ -142,6 +142,9 @@ def main() -> int:
         ["4  真模型 + 真素材", {"size": 15, "bold": True, "color": ACCENT}],
         ["     角色候选由真模型生成（source=llm）；背板与", {"size": 12}],
         ["     立绘由文生图产出，带提示词/模型/时间戳", {"size": 12}],
+        ["5  一句话生成完整开场", {"size": 15, "bold": True, "color": ACCENT}],
+        ["     模型产出剧名/区域/角色/道具/事实 + 舞台布局；", {"size": 12}],
+        ["     华山→室外山景，游轮→驾驶舱，来源如实标注", {"size": 12}],
     ])
     textbox(s, 7.0, 1.6, 5.8, 5.2, [
         ["1  See how agents act", {"size": 13, "bold": True, "color": ACCENT}],
@@ -156,6 +159,9 @@ def main() -> int:
         ["4  Real model, real assets", {"size": 13, "bold": True, "color": ACCENT}],
         ["     live LLM candidates (source=llm); text-to-image", {"size": 11}],
         ["     backdrops and portraits with provenance", {"size": 11}],
+        ["5  One line to a full opening", {"size": 13, "bold": True, "color": ACCENT}],
+        ["     title, areas, cast, props, facts + stage layout;", {"size": 11}],
+        ["     mountain vs ship bridge, source labelled", {"size": 11}],
     ])
 
     # ---------- 4 技术与边界 ----------
@@ -194,7 +200,8 @@ def main() -> int:
     header(s, "现场演示与下一步", "Live demo, and what's next", "04")
     textbox(s, 0.7, 1.6, 6.0, 5.2, [
         ["现场真跑", {"size": 15, "bold": True, "color": ACCENT}],
-        ["建场景 → 推进一步 → 点事件看「提议→检查→结果」", {"size": 12}],
+        ["输一句想法 → 模型生成完整开场 → 确认建场景", {"size": 12}],
+        ["推进一步 → 点事件看「提议→检查→结果」", {"size": 12}],
         ["→ 点道具看事实 → 改一句台词并锁定 → 加导演指令", {"size": 12}],
         ["→ 预览（正式状态不变）→ 提交 → 生成美术素材", {"size": 12}],
         ["→ 导出场次卡 / 剧本 / 分镜草稿", {"size": 12}],

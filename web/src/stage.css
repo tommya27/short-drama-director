@@ -1,0 +1,40 @@
+.world-stage{display:flex;flex-direction:column;min-height:460px;border-radius:16px;overflow:hidden;border:1px solid #dde2df;background:#deddd7;color:#39433e}.world-stage-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:#f9faf5e8;font-size:12px;flex-wrap:wrap}.world-stage-bar small{color:#849087}.stage-green-dot{display:inline-block;width:6px;height:6px;background:#719b7e;border-radius:50%;margin-right:5px}.world-stage-actions{display:flex;gap:6px}.world-stage-actions button,.world-stage-actions select{border:1px solid #d6ddd5;background:#fffef8;color:#49534f;padding:5px 8px;font-size:11px;border-radius:6px}.world-stage-actions .chosen{background:#d9e8de}.world-canvas{height:490px;min-height:360px;position:relative;flex:1}.world-canvas canvas{touch-action:none}.world-stage-note{display:flex;justify-content:space-between;gap:15px;padding:9px 15px;background:#f4f5ef;color:#849085;font-size:10px}.room-screen{color:#b7d7cc;width:230px;text-align:center;font-size:23px;letter-spacing:4px;pointer-events:none}.room-screen small{font-size:12px;letter-spacing:1px}.floor-word{white-space:nowrap;color:#7f8275;font-size:30px;pointer-events:none;letter-spacing:5px}.actor-label{display:flex;align-items:center;gap:5px;white-space:nowrap;border:1px solid #ffffffcf;border-radius:7px;padding:5px 8px;background:#fefef7ee;color:#35433e;font-size:11px;box-shadow:0 3px 10px #34413620}.actor-label span{height:6px;width:6px;border-radius:50%}.actor-label.chosen{border-color:#c79353;background:#fff5d9}.actor-dialogue{max-width:205px;width:max-content;padding:9px 12px;background:#fffff5f5;border-radius:10px;font-size:11px;line-height:1.6;box-shadow:0 6px 20px #34413628;color:#35433e;pointer-events:none}.actor-dialogue small{display:block;color:#8b9b89;font-size:9px;margin-bottom:3px}.item-label{white-space:nowrap;background:#fcfcf4cf;border-radius:3px;padding:2px 4px;font-size:8px;color:#647069;pointer-events:none}.zone-label{color:#546b61;white-space:nowrap;background:#ffffff90;padding:3px 6px;border-radius:4px;font-size:10px}.world-map{position:absolute;inset:0;overflow:auto;background:linear-gradient(140deg,#e7e8df,#d8ded8);padding:22px;display:flex;align-content:flex-start;align-items:flex-start;flex-wrap:wrap;gap:14px}.map-zone{border:1px dashed #98aca0;background:#f9faf4ad;border-radius:12px;padding:14px;min-height:160px;min-width:200px;flex:1;display:flex;gap:12px;align-items:center;position:relative;padding-top:43px}.map-zone>span{position:absolute;top:12px;left:15px;color:#64776b;font-size:11px}.map-person{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;max-width:170px;color:#47594f}.map-person i{display:grid;place-items:center;height:43px;width:30px;border-radius:40% 40% 20% 20%;color:#e5b49a;box-shadow:0 10px 12px #28423620}.map-person.chosen i{outline:3px solid #cfaa69;outline-offset:4px}.map-person b{font-size:11px}.map-person small{font-size:10px;line-height:1.4}.map-items{width:100%;display:flex;gap:7px;flex-wrap:wrap;color:#64776b;font-size:11px}.map-items span{padding:7px;border-radius:6px;background:#ffffffa0}.stage-footnote{font-size:11px;color:#859288}.stage-fallback{height:100%;position:relative;padding-top:30px}.stage-fallback p{margin:0;padding:8px 15px;font-size:11px;color:#937246;background:#fff3d9}.stage-fallback .world-map{top:30px}.stage-loading{display:grid;place-items:center;height:100%;color:#667e70;font-size:13px}@media(max-width:900px){.world-canvas{height:400px}.world-stage-note{flex-direction:column;gap:3px}}
+@media(max-width:860px){.world-stage{min-height:350px;border-radius:12px}.world-canvas{height:400px;min-height:300px}.world-stage-bar{padding:10px}.world-stage-note{flex-direction:column;gap:3px}}
+
+/* Keep event text inside the viewport, clear of the characters above it. */
+.world-canvas { isolation: isolate; }
+.stage-event-caption { position: absolute; z-index: 70; bottom: 16px; left: 50%; transform: translateX(-50%); width: min(480px, calc(100% - 32px)); max-height: 30%; overflow-y: auto; overscroll-behavior: contain; padding: 12px 16px; border: 1px solid #ffffffc9; border-radius: 10px; background: #fffff5f2; color: #35433e; box-shadow: 0 4px 18px #34413618; }
+.stage-event-caption-heading { display: flex; align-items: center; gap: 10px; font-size: 11px; }
+.stage-event-caption-heading span { color: #687e6d; }
+.stage-event-caption-heading b { font-weight: 600; }
+.stage-event-caption p { margin: 5px 0 0; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; white-space: pre-wrap; }
+@media (max-width: 520px) { .stage-event-caption { bottom: 12px; width: calc(100% - 24px); padding: 10px 12px; } }
+
+/* Lightweight annotations: fixed screen size, leader lines, no opaque cards. */
+.stage-label-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.stage-label-layer svg { position: absolute; inset: 0; pointer-events: none; }
+.stage-label-layer line { visibility: hidden; }
+.stage-small-label { position: absolute; left: 0; top: 0; visibility: hidden; display: flex; align-items: center; gap: 4px; max-width: 138px; min-height: 22px; padding: 2px 4px; border: 0; border-radius: 4px; background: transparent; color: #314039; font-size: 11px; line-height: 18px; font-weight: 600; text-shadow: 0 1px 2px #fff, 1px 0 2px #fff, -1px 0 2px #fff, 0 -1px 2px #fff; white-space: nowrap; pointer-events: auto; }
+.stage-small-label span { overflow: hidden; text-overflow: ellipsis; }
+.stage-small-label i { flex: 0 0 5px; width: 5px; height: 5px; border-radius: 50%; }
+.stage-small-label.item, .stage-small-label.zone { font-weight: 400; font-size: 10px; }
+.stage-small-label.active, .stage-small-label:hover, .stage-small-label:focus-visible { background: #fffff3b8; }
+.stage-small-label.active { box-shadow: inset 0 -1px #c89b52; }
+.stage-event-caption { padding: 9px 13px; background: #fffff3e8; max-height: 110px; }
+.stage-event-caption-heading button { margin-left: auto; padding: 3px 6px; background: transparent; color: #476c5c; font-size: 11px; min-height: 26px; }
+.stage-event-caption:not(.expanded) p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.stage-event-caption.expanded { max-height: 45%; }
+.world-stage-actions { flex-wrap: wrap; }
+@media (max-width: 520px) {
+  .stage-small-label { font-size: 11px; }
+  .stage-event-caption-heading button { min-height: 32px; min-width: 44px; }
+  .world-stage-actions button { white-space: nowrap; }
+}
+
+/* T1 美术素材：背板铺底的 2.5D 立绘，以及底部素材来源条 */
+.map-portrait{height:56px;width:44px;object-fit:cover;object-position:center top;border-radius:38% 38% 18% 18%;box-shadow:0 10px 12px #28423620;background:#eceae2}
+.map-person.chosen .map-portrait{outline:3px solid #cfaa69;outline-offset:4px}
+.stage-artifacts{display:flex;gap:8px;align-items:center;overflow-x:auto;padding:8px 14px;background:#f1f2ea;border-top:1px solid #e0e2d8}
+.stage-artifacts figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:3px;flex:0 0 auto}
+.stage-artifacts img{height:46px;width:auto;max-width:96px;object-fit:cover;border-radius:6px;border:1px solid #d5d9cf;background:#fff}
+.stage-artifacts figcaption{font-size:9px;color:#7d8a80;white-space:nowrap}

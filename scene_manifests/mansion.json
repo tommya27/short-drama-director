@@ -1,0 +1,11 @@
+{
+  "scene_key": "mansion",
+  "name": "古宅",
+  "renderer_type": "generic3d",
+  "camera_presets": ["wide", "top", "focus"],
+  "asset_set": ["table", "chairs", "screen", "plants"],
+  "character_style": "procedural_low_poly",
+  "palette": {"floor":"#b4b9b3","wall":"#d8d0bd","wood":"#5c625d","accent":"#737098"},
+  "zones": [],
+  "interaction_points": []
+}

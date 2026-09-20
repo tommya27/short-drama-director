@@ -1,0 +1,11 @@
+{
+  "scene_key": "office",
+  "name": "办公室",
+  "renderer_type": "generic3d",
+  "camera_presets": ["wide", "top", "focus"],
+  "asset_set": ["table", "chairs", "screen", "plants", "cabinet"],
+  "character_style": "procedural_low_poly",
+  "palette": {"floor":"#d5dce0","wall":"#e0e5e3","wood":"#b6a284","accent":"#56889d"},
+  "zones": [],
+  "interaction_points": []
+}

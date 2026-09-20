@@ -1,0 +1,12 @@
+{
+  "scene_key": "inn",
+  "name": "客栈",
+  "renderer_type": "generic3d",
+  "camera_presets": ["wide", "top", "focus"],
+  "asset_set": ["table", "chairs", "cabinet", "screen"],
+  "character_style": "procedural_low_poly",
+  "character_colors": ["#91714e", "#64796a", "#8d5c53"],
+  "palette": {"floor":"#bda58a","wall":"#d4c09c","wood":"#674a32","accent":"#bb6844"},
+  "zones": [],
+  "interaction_points": []
+}

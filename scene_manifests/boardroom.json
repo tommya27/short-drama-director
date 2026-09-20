@@ -1,0 +1,10 @@
+{
+  "scene_key": "boardroom",
+  "name": "董事会会议室",
+  "renderer_type": "boardroom3d",
+  "zones": ["north_table", "south_entry", "east_screen", "west_window"],
+  "camera_presets": ["wide", "top", "focus", {"id":"table_focus","label":"会议桌","position":[6,6,8],"target":[0,1,0]}],
+  "asset_set": ["table", "document", "phone", "screen", "chairs", "plants", "cabinet"],
+  "character_style": "procedural_low_poly",
+  "interaction_points": [{"id":"document_center","label":"证据区","position":[0,1.12,0],"item_id":"contract"},{"id":"door","label":"入口","position":[3.7,0.04,3.3]}]
+}

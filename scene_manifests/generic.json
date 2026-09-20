@@ -1,0 +1,10 @@
+{
+  "scene_key": "generic",
+  "name": "通用剧情空间",
+  "renderer_type": "generic3d",
+  "zones": ["center", "north", "south", "east", "west"],
+  "camera_presets": ["wide", "top", "focus"],
+  "asset_set": ["table", "screen", "chairs", "plants", "cabinet"],
+  "character_style": "procedural_low_poly",
+  "interaction_points": []
+}

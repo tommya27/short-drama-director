@@ -4,7 +4,7 @@ export type SceneSpec = {
   scene_id: string; title: string; premise: string; genre: string; location: string; locations: string[];
   actors: ActorSpec[]; characters?: ActorSpec[]; goals: string[]; goal?: string; conflict: string;
   relationships: string[]; items: ItemState[]; facts: FactState[]; author_facts: string[]; scene_manifest: SceneManifest;
-  contract?: Record<string, string>; beats?: DramaticBeat[];
+  contract?: Record<string, string>; beats?: DramaticBeat[]; dramatic_source?: { contract?: string; beats?: string };
 };
 export type ActorState = ActorSpec & { status?: "active" | "watching" | "waiting" | string; history?: string[]; known_fact_ids?: string[] };
 export type ItemState = { id: string; name: string; holder?: string | null; location?: string | null; state?: string; [key: string]: unknown };
@@ -12,6 +12,7 @@ export type FactState = { id: string; label: string; value?: string; text?: stri
 export type SceneEvent = {
   id: string; step: number; actor_id: string; target_id?: string | null; action: string; dialogue?: string;
   inner_thought?: string; action_type?: string; location?: string; move_to?: string; visibility?: string; source?: string;
+  beat_id?: string; tension_delta?: number; intent?: string; obstacle?: string; consequence?: string; revealed_information?: string[]; caused_by_event_ids?: string[];
   proposed_change?: Record<string, unknown>; committed_change?: boolean; observed_by?: string[]; checks?: Array<Record<string, unknown>>;
   created_at?: string; transfer?: { item_id: string; to_actor_id: string }; reveal_fact_ids?: string[]; [key: string]: unknown;
 };
@@ -32,7 +33,7 @@ export type RunPhase = "idle" | "generating" | "review" | "scheduled" | "cancell
 export type Branch = { branch_id: string; name: string; parent_branch_id?: string | null; created_at?: string };
 export type SceneRecord = { scene_id: string; scene_spec: SceneSpec; spec?: SceneSpec; state?: WorldSnapshot; active_branch_id: string; branches: Branch[]; created_at?: string; updated_at?: string };
 export type OutputType = "scene_card" | "screenplay" | "storyboard";
-export type SceneOutput = { version?: number; output_id?: string; scene_id: string; branch_id: string; type: OutputType; content: string | Record<string, unknown> | unknown[]; source_event_ids: string[]; revision: number; created_at?: string };
+export type SceneOutput = { version?: number; output_id?: string; scene_id: string; branch_id: string; type: OutputType; content: string | Record<string, unknown> | unknown[]; source_event_ids: string[]; revision: number; created_at?: string; source?: string; polished?: boolean; polish_reason?: string | null };
 export type ReplayFrame = { frame_id: string; source_branch_id: string; revision: number; reason: string; scene_spec: SceneSpec; state: WorldSnapshot };
 export type ReplayHistory = { scene_id: string; branch_id: string; revision: number; frames: ReplayFrame[] };
 export type StageMotion = { paused: boolean; speed: number; seek: number };

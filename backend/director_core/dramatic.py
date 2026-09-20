@@ -145,22 +145,38 @@ def plan_beats(spec: dict, contract: dict, client=None) -> list[dict[str, Any]]:
 
 
 def ensure_dramatic(spec: dict, *, use_model: bool = True, client=None) -> dict:
-    """确保场景带 contract 与 beats（幂等）：已有就沿用。"""
+    """确保场景带 contract 与 beats（幂等）：已有就沿用。
+
+    同时记录 dramatic_source：**如实标注每一项是真模型生成还是模板回退**，
+    供界面显示，避免把模板当成模型产出。
+    """
     result = dict(spec)
+    source = dict(result.get("dramatic_source") or {})
+    source.setdefault("contract", "template")
+    source.setdefault("beats", "template")
     contract = result.get("contract")
     if not isinstance(contract, dict) or not contract.get("protagonist"):
         contract = None
         if use_model:
             try:
                 contract = contract_with_model(result, client)
+                source["contract"] = "llm"
             except Exception:  # noqa: BLE001
                 contract = None
         contract = contract or build_contract(result)
     result["contract"] = {key: str(contract.get(key, "") or "") for key in CONTRACT_FIELDS}
     beats = result.get("beats")
     if not isinstance(beats, list) or len(beats) != 5:
-        beats = plan_beats(result, result["contract"], client) if use_model else default_beats()
+        beats = None
+        if use_model:
+            try:
+                beats = beats_with_model(result, result["contract"], client)
+                source["beats"] = "llm"
+            except Exception:  # noqa: BLE001
+                beats = None
+        beats = beats or default_beats()
     result["beats"] = beats
+    result["dramatic_source"] = source
     return result
 
 
@@ -300,7 +316,7 @@ def advance_beat_state(state: dict, beats: list[dict], *, tension: int = 0) -> d
 
 
 def _next_beat_suggestion(beat: dict) -> str:
-    return f"本拍要求：{beat.get('information_change', '')}；完成信号：{beat.get('completion_signal', '')}"
+    return f"这一段要解决：{beat.get('information_change', '')}；完成信号：{beat.get('completion_signal', '')}"
 
 
 # ---------- 可读剧本 ----------

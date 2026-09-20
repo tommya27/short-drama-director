@@ -80,7 +80,9 @@ OPENING_SYSTEM = f"""你是短剧的前期策划，把作者的一句话想法�
 def _with_template_drama(spec: dict) -> dict:
     """规则路径也要有契约与节拍：用模板补齐，绝不联网。"""
     from .dramatic import ensure_dramatic
-    return ensure_dramatic(dict(spec), use_model=False)
+    result = ensure_dramatic(dict(spec), use_model=False)
+    result['dramatic_source'] = {'contract': 'template', 'beats': 'template'}
+    return result
 
 
 def model_available() -> bool:

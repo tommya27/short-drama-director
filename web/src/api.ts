@@ -35,7 +35,8 @@ export function normalizeSpec(payload: Partial<SceneSpec> & Record<string, unkno
     facts: source.facts ?? [], author_facts: source.author_facts ?? [], scene_manifest: source.scene_manifest ?? { scene_key: "generic" },
     // 剧情结构层字段必须透传，否则前端拿不到节拍与契约（按钮会被误禁用）
     contract: (source.contract as Record<string, string>) ?? {},
-    beats: (source.beats as DramaticBeat[]) ?? []
+    beats: (source.beats as DramaticBeat[]) ?? [],
+    dramatic_source: (source.dramatic_source as { contract?: string; beats?: string }) ?? undefined
   };
 }
 

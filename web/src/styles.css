@@ -380,3 +380,14 @@ input[type="checkbox"] { width: 16px; height: 16px; min-height: 0; flex: 0 0 16p
 .drama-row.pass span { color: #2f7a55; }
 .drama-row.weak span { color: #b8862e; }
 .drama-row.none span { color: #9aa39c; }
+
+/* 剧情分段进度：已完成 / 进行中 / 未开始 */
+.segment-list .section-label { display: flex; justify-content: space-between; gap: 8px; }
+.segment-row { display: grid; grid-template-columns: 56px 52px 1fr; gap: 6px; align-items: baseline; font-size: 11px; padding: 4px 0; border-bottom: 1px dashed #e6e8e0; }
+.segment-row b { font-weight: 600; color: #38443e; }
+.segment-row span { font-weight: 600; }
+.segment-row small { color: var(--text-2, #6b7770); }
+.segment-row.done span { color: #2f7a55; }
+.segment-row.current span { color: #b8862e; }
+.segment-row.todo span { color: #9aa39c; }
+.segment-row.current { background: #fff8e8; border-radius: 6px; }

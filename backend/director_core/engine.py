@@ -12,7 +12,7 @@ from .service import NarrativeService
 from .offline import OfflineGenerator
 from .scene_input import portable_spec
 from .sandbox import project, role_context
-from .dramatic import polish_screenplay, render_screenplay, render_storyboard
+from .dramatic import ensure_dramatic, polish_screenplay, render_screenplay, render_storyboard
 
 class NotFoundError(LookupError): pass
 
@@ -76,6 +76,10 @@ class DirectorStore:
             branches[-1]['branch_id']=branches[-1].pop('id')
             branches[-1]['parent_branch_id']=branches[-1].pop('parent_branch')
         spec=deepcopy(branch['spec']); spec['scene_id']=sid; spec['actors']=deepcopy(spec.get('characters',[]))
+        # 读取路径不调模型：老场景缺 contract/beats 时用内置模板补齐（并如实标注 template），
+        # 这样界面上的"剧情分段"和事件归属永远有据可依。
+        if not spec.get('beats') or not spec.get('contract'):
+            spec=ensure_dramatic(spec, use_model=False)
         spec['locations']=deepcopy(spec['world']['locations'])
         spec.setdefault('goals',[])
         return {'scene_id':sid,'scene_spec':spec,'spec':spec,**{k:deepcopy(v) for k,v in spec.items() if k not in ('scene_id',)},
@@ -106,6 +110,10 @@ class DirectorStore:
         branch=self._branch(sid,bid)
         expected=self._version(patch.pop('base_revision',None),branch['revision'])
         allowed={'characters','actors','items','facts','title','goal','goals','conflict','location','locations','genre','scene_manifest','author_facts','relationships','world','premise'}
+        # contract / beats / dramatic_source 由剧情结构层在服务端维护（只读）；
+        # 前端整份回写场景时会带上它们，这里忽略而不报错。
+        for readonly in ('contract','beats','dramatic_source'):
+            patch.pop(readonly,None)
         if set(patch)-allowed: raise ValueError('不支持的场景修改字段：'+','.join(sorted(set(patch)-allowed)))
         changes=patch
         if 'goals' in changes and (not isinstance(changes['goals'],list) or any(not isinstance(v,str) for v in changes['goals'])):

@@ -40,7 +40,7 @@ export type SceneArtifact = {
   prompt: string; model: string; size?: string; created_at: string; url: string;
   actor_id?: string | null; item_id?: string | null; sha256?: string; bytes?: number;
 };
-export type WorldStageProps = { scene: SceneSpec; snapshot: WorldSnapshot; events: SceneEvent[]; selectedActor: string | null; onActorSelect: (actorId: string) => void; motion?: StageMotion; activeEventId?: string | null; artifacts?: SceneArtifact[]; dialogueLines?: boolean };
+export type WorldStageProps = { scene: SceneSpec; snapshot: WorldSnapshot; events: SceneEvent[]; selectedActor: string | null; onActorSelect: (actorId: string) => void; motion?: StageMotion; activeEventId?: string | null; artifacts?: SceneArtifact[]; dialogueLines?: boolean; showBubbles?: boolean };
 export function actorsList(snapshot?: WorldSnapshot | null): ActorState[] { return snapshot ? Object.values(snapshot.actors ?? {}) : []; }
 export function eventActorName(event: SceneEvent, scene: SceneSpec | null, snapshot?: WorldSnapshot | null): string { return snapshot?.actors?.[event.actor_id]?.name ?? scene?.actors.find((actor) => actor.id === event.actor_id)?.name ?? event.actor_id; }
 export function outputText(content: SceneOutput["content"]): string { return typeof content === "string" ? content : JSON.stringify(content, null, 2); }

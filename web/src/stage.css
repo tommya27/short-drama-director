@@ -48,9 +48,10 @@
 .stage-artifacts figcaption{font-size:9px;color:#7d8a80;white-space:nowrap}
 
 /* 3D 舞台里的说话气泡与指向连线（Html 覆盖层） */
-.speech-bubble{width:max-content;max-width:172px;max-height:88px;overflow:hidden;padding:6px 9px;border-radius:10px;background:#fffff5f2;color:#35433e;font-size:11px;line-height:1.5;box-shadow:0 6px 18px #34413630;border:1px solid #ffffffcc;display:flex;flex-direction:column;gap:2px}
-.speech-bubble b{font-size:11px;color:#2f6f5b}
+.speech-bubble{width:max-content;max-width:min(150px,32vw);max-height:72px;overflow:hidden;padding:5px 8px;border-radius:10px;background:#fffff5d9;color:#35433e;font-size:11px;line-height:1.45;box-shadow:0 4px 14px #34413626;border:1px solid #ffffffcc;display:flex;flex-direction:column;gap:2px}
+.speech-bubble b{font-size:10px;color:#2f6f5b}
 .speech-bubble span{color:#5d6a63;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
-.speech-bubble em{color:#2f3a35;font-style:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.speech-bubble.chosen{border-color:#c79353;background:#fff7e4f2;box-shadow:0 8px 22px #a97a3a45}
+.speech-bubble em{color:#2f3a35;font-style:normal;font-size:11px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.speech-bubble em.speech-action{color:#77857c;font-size:10px}
+.speech-bubble.chosen{border-color:#c79353;background:#fff7e4e0;box-shadow:0 8px 22px #a97a3a45}
 .speech-progress{align-self:flex-end;font-size:9px;color:#8d9a92;font-style:normal}

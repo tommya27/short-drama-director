@@ -25,10 +25,12 @@ function SpeechBubble({ name, action, dialogue, chosen, lines }: { name: string;
   return () => clearTimeout(timer);
  }, [index, plan, lines]);
  const stepped = lines && plan.length > 1;
+ const plain = dialogue ? (dialogue.length > 30 ? `${dialogue.slice(0, 30)}…` : dialogue) : '';
  return <div className={`speech-bubble ${chosen ? 'chosen' : ''}`}>
   <b>{name}</b>
-  {action && <span>{action}</span>}
-  {dialogue && <em>“{stepped ? plan[index].text : (dialogue.length > 34 ? `${dialogue.slice(0, 34)}…` : dialogue)}”</em>}
+  {dialogue
+   ? <em>“{stepped ? plan[index].text : plain}”</em>
+   : action && <em className="speech-action">{action.length > 24 ? `${action.slice(0, 24)}…` : action}</em>}
   {stepped && <i className="speech-progress">{index + 1} / {plan.length}</i>}
  </div>;
 }
@@ -40,7 +42,7 @@ function PortraitSprite({ url, position }: { url: string; position: Vec3 }) {
  const texture = useTexture(url);
  return <sprite position={position} scale={[0.9, 1.2, 1]}><spriteMaterial map={texture} transparent depthWrite={false}/></sprite>;
 }
-type Props=WorldStageProps & {preset:string;showObservers:boolean;showLabels:boolean;onFailure:()=>void};
+type Props=WorldStageProps & {preset:string;showObservers:boolean;showLabels:boolean;onFailure:()=>void;showBubbles?:boolean};
 function Box({position,size,color,rotation=0}:{position:Vec3;size:Vec3;color:string;rotation?:number}) {return <mesh position={position} rotation={[0,rotation,0]} castShadow receiveShadow><boxGeometry args={size}/><meshStandardMaterial color={color} roughness={.75}/></mesh>;}
 function Plant({position}:{position:Vec3}) {return <group position={position}><mesh position={[0,.3,0]} castShadow><cylinderGeometry args={[.3,.22,.6,8]}/><meshStandardMaterial color="#a66f51"/></mesh>{[0,1,2,3,4].map(i=><mesh key={i} position={[Math.sin(i*2)*.22,.85+i*.09,Math.cos(i*2)*.22]} rotation={[0,i,Math.sin(i)*.6]} castShadow><icosahedronGeometry args={[.4,0]}/><meshStandardMaterial color={i%2?'#627e5d':'#8ba572'}/></mesh>)}</group>;}
 function Rock({position,size=1,color="#8b8f86"}:{position:Vec3;size?:number;color?:string}) {return <mesh position={position} castShadow receiveShadow><dodecahedronGeometry args={[.5*size,0]}/><meshStandardMaterial color={color} roughness={.95}/></mesh>;}
@@ -185,16 +187,16 @@ function SceneContent(props: Props) {
   {layout.points.map(point=><group key={point.id} position={point.position}><mesh rotation={[-Math.PI/2,0,0]}><ringGeometry args={[.18,.22,24]}/><meshBasicMaterial color={layout.accent} transparent opacity={.5}/></mesh></group>)}
   {actors.map((actor,index)=>{const event=props.events.filter(e=>e.actor_id===actor.id).at(-1); return <Avatar key={actor.id} id={actor.id} color={colorFor(index)} position={positions[actor.id]} target={positions[String(event?.target_id)]??[0,0,0]} selected={props.selectedActor===actor.id} motion={props.motion} onSelect={()=>props.onActorSelect(actor.id)} onHover={value=>setHovered(value?`actor:${actor.id}`:null)}/>;})}
   {(() => {
-   // 只给「当前选中角色」和「最近一条事件的发言者」显示气泡，避免多人同时弹气泡糊满屏幕
+   if (props.showBubbles === false) return null;   // 导演可一键关闭气泡
+   // 同一时刻只显示一个说话气泡，彻底避免多人气泡互相遮挡
    const newest = props.events.at(-1)?.actor_id;
-   const wanted = [props.selectedActor, newest].filter((id, index, list): id is string => !!id && list.indexOf(id) === index);
-   return actors.filter(actor => wanted.includes(actor.id)).map(actor => {
-    const latest = props.events.filter(event => event.actor_id === actor.id).at(-1);
-    const anchor = positions[actor.id];
-    if (!latest || !anchor) return null;
-    const selected = props.selectedActor === actor.id;
-    return <Html key={`say:${actor.id}`} position={[anchor[0], 2.28, anchor[2]]} center zIndexRange={[20, 0]} style={{pointerEvents:'none'}}><SpeechBubble name={actor.name} action={latest.action} dialogue={latest.dialogue} chosen={selected} lines={!!props.dialogueLines}/></Html>;
-   });
+   const activeId = (props.selectedActor && positions[props.selectedActor]) ? props.selectedActor : newest;
+   if (!activeId) return null;
+   const speaker = actors.find(actor => actor.id === activeId);
+   const latest = props.events.filter(event => event.actor_id === activeId).at(-1);
+   const anchor = positions[activeId];
+   if (!speaker || !latest || !anchor) return null;
+   return <Html key={`say:${activeId}`} position={[anchor[0], 2.24, anchor[2]]} center zIndexRange={[20, 0]} style={{pointerEvents:'none'}}><SpeechBubble name={speaker.name} action={latest.action} dialogue={latest.dialogue} chosen={props.selectedActor === activeId} lines={!!props.dialogueLines}/></Html>;
   })()}
   {actors.map(actor=>{const latest=props.events.filter(e=>e.actor_id===actor.id).at(-1);const target=latest?.target_id?positions[latest.target_id]:undefined;const from=positions[actor.id];if(!target||!from)return null;
    return <Line key={`talk:${actor.id}`} points={[new Vector3(from[0],1.05,from[2]),new Vector3(target[0],1.05,target[2])]} color="#c79353" lineWidth={1.2} dashed dashSize={.22} gapSize={.16}/>;})}

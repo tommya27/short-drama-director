@@ -16,7 +16,7 @@ from .director_core.runtime import build_store, load_env_file, runtime_info
 load_env_file()
 store, RUNTIME = build_store()
 
-app = FastAPI(title="短剧剧情创作平台 API", version="0.1.0", description="共享虚拟世界剧情沙盘与导演控制台")
+app = FastAPI(title="可视化 AI 导演台 API", version="0.1.0", description="共享虚拟世界剧情沙盘与导演控制台")
 app.add_middleware(CORSMiddleware, allow_origins=["http://127.0.0.1:5274", "http://localhost:5274"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
 
 

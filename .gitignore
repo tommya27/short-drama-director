@@ -13,3 +13,7 @@ data/
 .runtime/
 .env
 *.db
+
+# 其它工具产生的构建目录与提交包产物
+.codex-ppt-build/
+dist_submission/

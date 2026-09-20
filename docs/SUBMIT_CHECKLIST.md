@@ -7,7 +7,7 @@
 | 交付物 | 状态 | 位置 / 说明 |
 |---|---|---|
 | 可演示应用（工具） | ✅ 可跑 | 后端 `8200` + 导演台 `5274`；赛道要求"单点跑通即可" |
-| PPT ≤5 页中英双语 | 📝 内容已备 | `docs/PITCH_DECK.md`（5 页中英要点，直接抄进 PPT） |
+| PPT ≤5 页中英双语 | ✅ 已生成 | `docs/PITCH_DECK.pptx`（5 页，封面嵌入真实生成背板图）；文本版 `docs/PITCH_DECK.md`；改内容后重跑 `py -3.13 scripts/make_deck.py` |
 | Demo 演示视频 | ⬜ 待录 | 见下方"录制脚本"（3–5 分钟，真实运行） |
 | 赛期迭代痕迹 | ✅ 已有 | `git log --oneline`（2 个提交，见下方"提交历史"） |
 | 来源与复用披露 | ✅ 已有 | `docs/PROVENANCE.md`、`docs/REFERENCES.md`、`docs/THIRD_PARTY_NOTICES.md` |
@@ -45,6 +45,15 @@ Set-Location web; Start-Process -WindowStyle Hidden node -ArgumentList './node_m
 
 判断标准：界面徽标显示「真模型试演 · deepseek-v4-flash」= live；显示「离线规则试演」= offline。
 无论哪种模式，界面上都写明来源，**答辩时以徽标为准**。
+
+## 三·五、可直接演示的场景（已配好素材）
+
+| 场景 ID | 内容 | 素材 | 适合展示 |
+|---|---|---|---|
+| `scene_c020e6b6488a` | 董事会，已提交 3 个事件（含 2 处**可见降级**记录） | 背板 + 3 立绘 | 事实透镜与降级记录（推荐首选） |
+| `scene_d5f679bcab8d` | 董事会主线 r16、48 个事件、2 个分支 | 背板 + 3 立绘 | 分支与回放 |
+
+入口：`http://127.0.0.1:5274/scene/scene_c020e6b6488a?branch=main`
 
 ## 四、录 Demo 脚本（3–5 分钟，真实运行）
 

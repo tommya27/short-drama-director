@@ -74,6 +74,6 @@ export const api = {
   addDirective: (id: string, branchId: string, text: string, actorId: string | null, step: number) => request<Directive>(`/scenes/${encodeURIComponent(id)}/directives`, "POST", { branch_id: branchId, text, target_actor_id: actorId, start_step: step }),
   cancelDirective: (id: string, branchId: string, directiveId: string) => request(`/scenes/${encodeURIComponent(id)}/directives/${encodeURIComponent(directiveId)}?branch_id=${encodeURIComponent(branchId)}`, "DELETE"),
   getOutputs: async (id: string) => (await request<OutputResponse[]>(`/scenes/${encodeURIComponent(id)}/outputs`)).map(normalizeOutput),
-  createOutput: async (id: string, branchId: string, type: OutputType, eventIds: string[], revision: number) => normalizeOutput(await request<OutputResponse>(`/scenes/${encodeURIComponent(id)}/outputs`, "POST", { branch_id: branchId, type, source_event_ids: eventIds, base_revision: revision })),
+  createOutput: async (id: string, branchId: string, type: OutputType, eventIds: string[], revision: number, polish = false) => normalizeOutput(await request<OutputResponse>(`/scenes/${encodeURIComponent(id)}/outputs`, "POST", { branch_id: branchId, type, source_event_ids: eventIds, base_revision: revision, polish })),
   saveOutput: async (output: SceneOutput, content: string) => normalizeOutput(await request<OutputResponse>(`/outputs/${encodeURIComponent(output.output_id ?? "")}`, "PATCH", { content, expected_version: output.version }))
 };

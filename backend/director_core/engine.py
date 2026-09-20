@@ -12,7 +12,7 @@ from .service import NarrativeService
 from .offline import OfflineGenerator
 from .scene_input import portable_spec
 from .sandbox import project, role_context
-from .dramatic import render_screenplay, render_storyboard
+from .dramatic import polish_screenplay, render_screenplay, render_storyboard
 
 class NotFoundError(LookupError): pass
 
@@ -274,10 +274,19 @@ class DirectorStore:
                          'content':head + "\n\n" + "\n".join(rows),
                          'editable':True,'source':'deterministic_storyboard'}
             else:
+                draft_text=render_screenplay(branch['spec'],chosen)
+                polished={'text':draft_text,'polished':False}
+                if payload.get('polish'):
+                    # 作者显式触发才调模型；失败或丢失来源标记则退回确定性草稿
+                    polished=polish_screenplay(branch['spec'],chosen,draft_text=draft_text)
                 content={'kind':'script','scene_id':sid,'branch_id':bid,'revision':branch['revision'],
                          'event_ids':[e['id'] for e in chosen],
-                         'content':render_screenplay(branch['spec'],chosen),
-                         'editable':True,'source':'deterministic_screenplay'}
+                         'content':polished['text'],
+                         'polished':bool(polished.get('polished')),
+                         'polish_reason':polished.get('reason'),
+                         'draft_content':draft_text if polished.get('polished') else None,
+                         'editable':True,
+                         'source':'polished_screenplay' if polished.get('polished') else 'deterministic_screenplay'}
             return self._store_output(sid,content,ids)
         content=self.service.output(self.owner,sid,bid,'script' if kind=='screenplay' else kind,ids,base_revision=branch['revision'])
         return self._store_output(sid,content,ids)

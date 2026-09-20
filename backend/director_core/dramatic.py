@@ -359,6 +359,38 @@ def render_storyboard(spec: dict, events: list[dict]) -> list[dict]:
     return shots
 
 
+POLISH_SYSTEM = """你是短剧编剧。把给出的场记草稿润色成可直接阅读的剧本：
+1. 保持事件顺序与人物行动不变，不新增事件、不改变事实与道具归属；
+2. 保留每一段的【来源：xxx】标记，且必须与原文一一对应、不得增删；
+3. 可以补写表演提示（放在括号里）与更自然的口语，但不要写内心独白当台词；
+4. **只输出 JSON 对象：{"text": "润色后的剧本正文"}**，正文里用换行分隔段落；
+   不要解释，不要把 JSON 包在 Markdown 代码块里。"""
+
+
+def polish_screenplay(spec: dict, events: list[dict], *, client=None, draft_text: str | None = None) -> dict:
+    """作者显式触发时，用真实模型润色确定性草稿；失败原样返回草稿并标注原因。"""
+    base = draft_text if draft_text is not None else render_screenplay(spec, events)
+    source_ids = [f"【来源：{e.get('id', '')}】" for e in events if isinstance(e, dict)]
+    try:
+        from .llm_client import LLMClient
+        client = client or LLMClient()
+        result = client.chat_json(
+            POLISH_SYSTEM,
+            "本场契约：" + json.dumps(spec.get("contract") or {}, ensure_ascii=False)
+            + chr(10) + chr(10) + "场记草稿：" + chr(10) + base,
+            tag="screenplay_polish")
+        text = str(result.get("text") or result.get("content") or "").strip()
+        if not text:
+            return {"text": base, "polished": False, "reason": "模型返回为空"}
+        missing = [mark for mark in source_ids if mark and mark not in text]
+        if missing:
+            # 来源标记被模型丢掉时，宁可保留可追溯的草稿，也不交付无法回查的文本
+            return {"text": base, "polished": False, "reason": f"润色后丢失来源标记 {len(missing)} 处"}
+        return {"text": text, "polished": True}
+    except Exception as exc:  # noqa: BLE001 - 润色失败不影响主流程
+        return {"text": base, "polished": False, "reason": f"{type(exc).__name__}: {exc}"[:120]}
+
+
 def event_fields() -> dict[str, Any]:
     """事件新增的戏剧字段与其默认值（供 sandbox 归一化时使用）。"""
     return {"intent": "", "obstacle": "", "consequence": "", "beat_id": "", "tension_delta": 0,

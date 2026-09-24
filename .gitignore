@@ -17,3 +17,14 @@ data/
 # 其它工具产生的构建目录与提交包产物
 .codex-ppt-build/
 dist_submission/
+
+# 比赛/路演材料与演示视频（本地保留，不进仓库）
+PPT/
+*.mp4
+docs/PITCH_*.md
+docs/PITCH_*.pptx
+docs/RESPONSIVE_QA.md
+docs/SUBMISSION_GUIDE.md
+docs/SUBMIT_CHECKLIST.md
+scripts/make_deck*
+scripts/package_submission.ps1
